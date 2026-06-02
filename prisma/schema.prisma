@@ -1,0 +1,261 @@
+// 정지은 일산 ABA — Prisma schema
+// Field names follow the ACTUAL frontend contract (data.js / *.jsx), not API_SPEC.md,
+// per the reconciliation rules in memory.md §5. Columns map to snake_case (API_SPEC §16).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ── Auth ───────────────────────────────────────────────────────────────────
+model AdminUser {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  passwordHash String   @map("password_hash")
+  role         String   @default("admin")
+  // Bumped on logout to invalidate previously issued JWTs (stateless revocation).
+  tokenVersion Int      @default(0) @map("token_version")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("admin_users")
+}
+
+// ── Singletons ───────────────────────────────────────────────────────────────
+model SiteSetting {
+  id        String   @id @default("singleton")
+  brand     Json
+  sections  Json
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("site_settings")
+}
+
+model NavItem {
+  id        String   @id // semantic id: "about", "programs", "contact", ...
+  label     String
+  order     Int      @default(0)
+  visible   Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([order])
+  @@map("nav_items")
+}
+
+model About {
+  id        String   @id @default("singleton")
+  eyebrow   String?
+  title     String?
+  lead      Json     @default("[]")
+  body      Json     @default("[]")
+  values    Json     @default("[]")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("about")
+}
+
+model Director {
+  id             String   @id @default("singleton")
+  name           String?
+  role           String?
+  sub            String?
+  photo          String?
+  certifications Json     @default("[]")
+  education      Json     @default("[]")
+  // Stored once; API exposes as BOTH `organizations` and `societies` (see memory.md §5.4).
+  organizations  Json     @default("[]")
+  career         Json     @default("[]")
+  awards         Json     @default("[]")
+  papers         Json     @default("[]")
+  training       Json     @default("[]")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@map("director")
+}
+
+model CenterInfo {
+  id                 String   @id @default("singleton")
+  eyebrow            String?
+  title              String?
+  sub                String?
+  highlights         Json     @default("[]")
+  earlyClasses       Json     @default("[]") @map("early_classes")
+  individualSessions Json     @default("[]") @map("individual_sessions")
+  closingNote        String?  @map("closing_note")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  @@map("center_info")
+}
+
+// ── Ordered collections ──────────────────────────────────────────────────────
+model HeroSlide {
+  id          String    @id @default(cuid())
+  eyebrow     String?
+  title       String
+  subtitle    String?
+  image       String?
+  buttonText  String?   @map("button_text")
+  buttonLink  String?   @map("button_link")
+  buttonText2 String?   @map("button_text2")
+  buttonLink2 String?   @map("button_link2")
+  order       Int       @default(0)
+  visible     Boolean   @default(true)
+  deletedAt   DateTime? @map("deleted_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@index([deletedAt, visible, order])
+  @@map("hero_slides")
+}
+
+model Program {
+  id        String    @id @default(cuid())
+  title     String
+  ageRange  String?   @map("age_range")
+  photo     String?
+  desc      String?
+  icon      String?
+  tone      String? // orange | green | yellow | green-soft (validated in DTO)
+  tags      Json      @default("[]")
+  meta      String?
+  detail    Json? // { intro, sections: [{ heading, body }] }
+  order     Int       @default(0)
+  visible   Boolean   @default(true)
+  deletedAt DateTime? @map("deleted_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  @@index([deletedAt, visible, order])
+  @@map("programs")
+}
+
+model Therapist {
+  id             String    @id @default(cuid())
+  name           String
+  role           String?
+  tone           String?
+  photo          String?
+  summary        String?
+  education      Json      @default("[]")
+  career         Json      @default("[]")
+  certifications Json      @default("[]")
+  teaching       Json      @default("[]")
+  completion     String?
+  order          Int       @default(0)
+  visible        Boolean   @default(true)
+  deletedAt      DateTime? @map("deleted_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  @@index([deletedAt, visible, order])
+  @@map("therapists")
+}
+
+model Notice {
+  id        String    @id @default(cuid())
+  title     String
+  body      String?
+  date      String? // free-form display string e.g. "2026.05.18" (frontend uses dots)
+  pinned    Boolean   @default(false)
+  views     Int       @default(0)
+  order     Int       @default(0)
+  visible   Boolean   @default(true)
+  deletedAt DateTime? @map("deleted_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  @@index([deletedAt, visible, pinned, order])
+  @@map("notices")
+}
+
+model GalleryItem {
+  id        String    @id @default(cuid())
+  src       String?
+  title     String? // caption
+  span      Int       @default(1) // 1 | 2 (grid column span)
+  tags      Json      @default("[]")
+  order     Int       @default(0)
+  visible   Boolean   @default(true)
+  deletedAt DateTime? @map("deleted_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  @@index([deletedAt, visible, order])
+  @@map("gallery_items")
+}
+
+model Popup {
+  id             String    @id @default(cuid())
+  title          String
+  content        String?
+  imageUrl       String?   @map("image_url")
+  linkUrl        String?   @map("link_url")
+  // Stored as date-only "YYYY-MM-DD" strings: the frontend concatenates "T00:00:00".
+  startAt        String    @map("start_at")
+  endAt          String    @map("end_at")
+  isActive       Boolean   @default(true) @map("is_active")
+  allowHideToday Boolean   @default(true) @map("allow_hide_today")
+  order          Int       @default(0)
+  deletedAt      DateTime? @map("deleted_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  @@index([deletedAt, isActive])
+  @@map("popups")
+}
+
+model Consultation {
+  id             String    @id @default(cuid())
+  parent         String
+  phone          String
+  childAge       String?   @map("child_age") // frontend `age` (free string, e.g. "만 4세")
+  childDiagnosis String?   @map("child_diagnosis")
+  email          String?
+  topic          String? // program id or title text (frontend sends title)
+  preferred      Json      @default("[]")
+  message        String? // frontend `note`
+  privacyConsent Boolean   @default(false) @map("privacy_consent")
+  status         String    @default("new") // new | contacted | done
+  isRead         Boolean   @default(false) @map("is_read")
+  ip             String?
+  idempotencyKey String?   @unique @map("idempotency_key") // dedup repeat POSTs (double-click / retry)
+  deletedAt      DateTime? @map("deleted_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  @@index([deletedAt, createdAt])
+  @@index([status])
+  @@index([isRead])
+  @@map("consultations")
+}
+
+// ── Misc ─────────────────────────────────────────────────────────────────────
+model PrivacyDoc {
+  kind      String   @id // "policy" | "consent"
+  version   String
+  body      String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("privacy_docs")
+}
+
+model PageView {
+  id        String   @id @default(cuid())
+  path      String
+  session   String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([createdAt])
+  @@index([session, createdAt])
+  @@map("page_views")
+}

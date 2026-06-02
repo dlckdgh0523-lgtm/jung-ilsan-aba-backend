@@ -1,0 +1,14 @@
+node_modules
+dist
+.git
+.gitignore
+.env
+.env.*
+*.log
+storage/uploads/*
+Dockerfile
+docker-compose.yml
+deploy
+README.md
+DEPLOY.md
+memory.md
