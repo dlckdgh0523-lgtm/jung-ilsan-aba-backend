@@ -57,7 +57,7 @@ curl -s -X POST localhost:4000/v1/auth/login \
 
 ## 4. Nginx (정적 프론트 + 리버스 프록시)
 
-디자인시스템 루트 경로를 `.env`의 `STATIC_ROOT_HOST`에 지정(기본 `../aba-design-system` — `ui_kits/website/`와 `assets/`가 모두 들어있는 폴더) 후:
+프론트 루트 경로를 `.env`의 `STATIC_ROOT_HOST`에 지정(기본 `../front-jungAba` — `ui_kits/website/`와 `assets/`가 모두 들어있는 폴더; backend-jungAba와 형제로 배치) 후:
 
 ```bash
 docker compose --profile proxy up -d nginx

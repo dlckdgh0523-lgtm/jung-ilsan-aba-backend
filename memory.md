@@ -1,7 +1,7 @@
 # 정지은 일산 ABA — 백엔드 작업 메모리 (memory.md)
 
 > 이 파일은 작업의 단일 기억 저장소입니다. **매 작업마다 끝에 작업 로그를 갱신**합니다.
-> 마지막 갱신: 2026-06-02 (작업 17 — 테스트(#14) + CI/Husky(#15) → 전체 15태스크 완료)
+> 마지막 갱신: 2026-06-03 (작업 18 — ★프론트 폴더 정정: 실프론트는 front-jungAba)
 
 ---
 
@@ -207,3 +207,9 @@ Helmet, CORS 화이트리스트, ValidationPipe(whitelist+transform), 관리자 
   - **CI**: `.github/workflows/ci.yml`(push/PR; postgres:16-alpine 서비스; env로 DATABASE_URL/JWT 등 주입; 단계 install→prisma generate→validate→migrate deploy→lint:ci→build(타입체크)→test:cov 게이트). 로컬에서 lint:ci(0)·typecheck(0)·test:cov(30/30) 전부 통과 확인. eslint flat config가 `projectService:true`라 test 파일 파싱하려면 tsconfig include에 `test/**/*` 추가 필요했음(빌드는 tsconfig.build.json이 test/spec 제외라 영향 없음). prettier --fix로 기존 13파일 포맷 정리.
   - **Husky/lint-staged**: `.husky/pre-commit`(npx lint-staged + npm run typecheck), `lint-staged {"*.ts":["eslint --fix","prettier --write"]}`, `prepare:husky`. **단, 이 디렉터리는 git repo 아님 → `git init` 후 `npm run prepare`(또는 npm install)해야 훅 활성화**(파일/설정은 준비됨).
   - **★★ 전체 15개 태스크 완료**: 백엔드 전 모듈 + 프론트 연동(마케팅+admin) + Docker/배포문서 + 라이브검증 + SSE강화 + 멱등성 + 테스트 + CI. dev 자원(백엔드 :4000·preview :5173·aba-pg·aba_test) 가동 중; dist 재빌드 완료(실행 중 백엔드는 재시작 시 최신 반영).
+- **작업 18 (2026-06-03) — ★프론트 폴더 정정(중요)**: 사용자 지적 — **실제 운영 프론트는 `aba-design-system`이 아니라 `C:\Users\user\Desktop\front-jungAba`**. (aba-design-system = 디자인시스템 zip 해제 사본/중복; front-jungAba가 진짜 — `uploads/`(실 업로드 이미지: kang/kim/lee 교사사진·카톡사진 등) + `assets/`(logo-aba-*·photo-director.jpg) + `preview/` + API_SPEC/SKILL.md 포함.)
+  - 진단(diff): 두 `ui_kits/website` 폴더 비교 → data.js/site.css/tokens.css **0차이**, index.html/admin.html/admin.css는 **내 연동 편집분만 차이**(첫 hunk가 2318/2952/380행=편집 지점; ASSETS·SITE_DATA 1~2317행 동일). 즉 front-jungAba = aba-design-system **원본**(미연동).
+  - 조치: 연동된 4파일(**api.js·index.html·admin.html·admin.css**)을 aba→front 복사 → front-jungAba 완전 연동(4파일 diff 0, api.js/ABA_API/createConsultation/admin 7마커 확인). 백엔드/시드는 무관(data.js 동일).
+  - 배포설정 정정: `docker-compose.yml` STATIC_ROOT_HOST 기본값 `../aba-design-system`→**`../front-jungAba`**, DEPLOY.md 프론트 폴더 표기 갱신, `.claude/launch.json` preview 루트도 front-jungAba.
+  - 검증: compose nginx 재생성(front-jungAba 마운트) → `/`302, `/ui_kits/website/index.html`200(api.js 태그), api.js 서빙(ABA_API), `/assets/program-1.png`·`photo-reception.jpg`200, `/v1/health`200. **실프론트 연동·서빙 정상.**
+  - ⚠ front-jungAba/`uploads/`(기존 실 업로드 이미지)는 nginx `/uploads/`가 백엔드 볼륨을 가리켜 prod 자동 서빙 X — 단 data.js는 `../../assets` 플레이스홀더만 참조하므로 깨짐 없음. 실 교사사진 반영은 운영서 admin 재업로드(또는 별도 시드)로 후속. aba-design-system 사본의 내 편집분은 무해(미배포); **front-jungAba가 canonical**.
