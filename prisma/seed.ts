@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 
@@ -64,28 +63,58 @@ const director = {
   name: '정지은',
   role: '원장 · BCBA',
   sub: 'QABA 지속교육기관 승인 프로바이더 인증',
-  photo: '',
+  photo: '../../assets/photo-director.jpg',
   certifications: [
     { code: 'BCBA', desc: 'Board Certified Behavior Analyst · 국제공인행동분석가' },
-    { code: 'QABA®', desc: 'Qualified Applied Behavior Analysis Credentialing Board · 지속교육기관 승인 프로바이더' },
+    {
+      code: 'QABA®',
+      desc: 'Qualified Applied Behavior Analysis Credentialing Board · 지속교육기관 승인 프로바이더',
+    },
     { code: 'QBA', desc: 'Qualified Behavior Analyst · 국제공인행동분석가' },
     { code: 'KBA', desc: '한국행동분석가 자격취득' },
     { code: 'QBA Board Provider', desc: '본센터 운영기관' },
   ],
-  education: ['백석대학교 대학원 응용행동분석 박사수료', '백석대학교 대학원 응용행동분석 석사 졸업', '특수교육학과 학사 졸업'],
-  organizations: ['PPOC 한국행동분석학회 정회원', '한국정서행동장애학회 정회원', '발달장애학회 정회원'],
+  education: [
+    '백석대학교 대학원 응용행동분석 박사수료',
+    '백석대학교 대학원 응용행동분석 석사 졸업',
+    '특수교육학과 학사 졸업',
+  ],
+  organizations: [
+    'PPOC 한국행동분석학회 정회원',
+    '한국정서행동장애학회 정회원',
+    '발달장애학회 정회원',
+  ],
   career: [
-    { period: '현', text: 'GDP(Global Doctor’s Prescription) 글로벌 의료 네트워크 — 베네닥터 신경정신과 (ABA분과) 자문위원' },
+    {
+      period: '현',
+      text: 'GDP(Global Doctor’s Prescription) 글로벌 의료 네트워크 — 베네닥터 신경정신과 (ABA분과) 자문위원',
+    },
     { period: '전', text: '넥슨 푸르메 어린이재활병원 ABA행동치료실 치료사' },
     { period: '전', text: '2020 PBS 안성시 긍정적 행동지원 위원단' },
     { period: '전', text: '성남시 한마음복지관 ABA치료실 치료사' },
   ],
   awards: ['백석대학교 총장 공로상 수여'],
   papers: [
-    { year: '2020', title: '개별시도교수 중재 시 과제 선택하기 기법이 자폐스펙트럼장애 아동의 회피행동에 미치는 효과' },
-    { year: '2023', title: '화살표 시각 단서를 활용한 개별시도교수가 자폐스펙트럼장애 아동의 반향어에 미치는 효과' },
-    { year: '2024', title: '한 음절 카드를 활용한 다중반응교수법이 자폐스펙트럼장애 아동의 텍스츄얼 습득에 미치는 효과' },
-    { year: '2024', title: '행동기술훈련이 자폐지원 전문가의 개별시도 교수 수행 및 자폐스펙트럼장애 아동의 과제수행에 미치는 효과' },
+    {
+      year: '2020',
+      title:
+        '개별시도교수 중재 시 과제 선택하기 기법이 자폐스펙트럼장애 아동의 회피행동에 미치는 효과',
+    },
+    {
+      year: '2023',
+      title:
+        '화살표 시각 단서를 활용한 개별시도교수가 자폐스펙트럼장애 아동의 반향어에 미치는 효과',
+    },
+    {
+      year: '2024',
+      title:
+        '한 음절 카드를 활용한 다중반응교수법이 자폐스펙트럼장애 아동의 텍스츄얼 습득에 미치는 효과',
+    },
+    {
+      year: '2024',
+      title:
+        '행동기술훈련이 자폐지원 전문가의 개별시도 교수 수행 및 자폐스펙트럼장애 아동의 과제수행에 미치는 효과',
+    },
   ],
   training: [
     'K-Bayley-3 영유아 발달검사 전문가 수련 수료',
@@ -112,10 +141,26 @@ const centerInfo = {
   title: '센터 안내 & 상담 일정',
   sub: 'EIBI 전문 ABA 조기교실 및 개별치료 기관입니다.',
   highlights: [
-    { icon: 'calendar', title: '2022년 3월 — 4층 2관 개관', desc: '두 개의 관으로 운영되며 충분한 중재 공간을 갖췄습니다.' },
-    { icon: 'eye', title: 'BCBA Observation Room', desc: '일방경 특수유리를 갖춘 관찰실로 부모님과 함께 공유합니다.' },
-    { icon: 'users', title: '슈퍼비전 룸 오픈', desc: '치료사의 임상 슈퍼비전 전용 공간을 별도로 운영합니다.' },
-    { icon: 'map-pin', title: '1관 503호 · 2관 408호', desc: '상담은 1관 503호로 방문 부탁드립니다.' },
+    {
+      icon: 'calendar',
+      title: '2022년 3월 — 4층 2관 개관',
+      desc: '두 개의 관으로 운영되며 충분한 중재 공간을 갖췄습니다.',
+    },
+    {
+      icon: 'eye',
+      title: 'BCBA Observation Room',
+      desc: '일방경 특수유리를 갖춘 관찰실로 부모님과 함께 공유합니다.',
+    },
+    {
+      icon: 'users',
+      title: '슈퍼비전 룸 오픈',
+      desc: '치료사의 임상 슈퍼비전 전용 공간을 별도로 운영합니다.',
+    },
+    {
+      icon: 'map-pin',
+      title: '1관 503호 · 2관 408호',
+      desc: '상담은 1관 503호로 방문 부탁드립니다.',
+    },
   ],
   earlyClasses: [
     { name: '1부 조기교실', time: '14:00 — 14:20', consult: '10분 상담 포함' },
@@ -126,7 +171,8 @@ const centerInfo = {
     { name: '아동 중재', time: '60분', consult: '부모교육 10분' },
     { name: '아동 중재', time: '90분', consult: '부모교육 10분' },
   ],
-  closingNote: '우리 아이들의 발달과 발전을 위해 최선으로 연구하며 노력합니다. 부재 시에는 문자로 문의 주세요 — 중재 중일 수 있습니다.',
+  closingNote:
+    '우리 아이들의 발달과 발전을 위해 최선으로 연구하며 노력합니다. 부재 시에는 문자로 문의 주세요 — 중재 중일 수 있습니다.',
 };
 
 interface HeroSeed {
@@ -144,7 +190,8 @@ const hero: HeroSeed[] = [
   {
     eyebrow: '정지은 일산 ABA',
     title: '아이의 행동을 이해하고,\n가정과 함께 변화를 만들어갑니다.',
-    subtitle: '박사 센터장과 석사 전문 선생님들이 함께하는 ABA 전문기관 — 초기상담부터 의료 연계까지 체계적으로 지원합니다.',
+    subtitle:
+      '박사 센터장과 석사 전문 선생님들이 함께하는 ABA 전문기관 — 초기상담부터 의료 연계까지 체계적으로 지원합니다.',
     image: '../../assets/photo-reception.jpg',
     buttonText: '무료 상담 예약하기',
     buttonLink: 'contact',
@@ -200,11 +247,21 @@ const programs: ProgramSeed[] = [
     tags: ['첫방문', '센터장 1:1'],
     meta: '센터장 · 1:1 · 약 60분',
     detail: {
-      intro: '처음 만나는 자리에서 아이의 발달과 가정에서의 어려움을 함께 살펴보고, 어떤 도움이 필요한지를 정리합니다.',
+      intro:
+        '처음 만나는 자리에서 아이의 발달과 가정에서의 어려움을 함께 살펴보고, 어떤 도움이 필요한지를 정리합니다.',
       sections: [
-        { heading: '프로그램 목적', body: '아이의 현재 상태와 가정에서 느끼시는 어려움을 함께 정리하고, 어떤 도움이 필요한지를 명확히 파악합니다.' },
-        { heading: '운영 방식', body: '박사 센터장이 부모님과 약 60분간 1:1로 상담합니다. 발달력, 일상 패턴, 관심사, 관찰된 행동을 차근차근 나눕니다.' },
-        { heading: '이후 흐름', body: '초기상담 결과를 바탕으로 발달평가와 개별화교육계획(IEP) 수립으로 자연스럽게 이어집니다.' },
+        {
+          heading: '프로그램 목적',
+          body: '아이의 현재 상태와 가정에서 느끼시는 어려움을 함께 정리하고, 어떤 도움이 필요한지를 명확히 파악합니다.',
+        },
+        {
+          heading: '운영 방식',
+          body: '박사 센터장이 부모님과 약 60분간 1:1로 상담합니다. 발달력, 일상 패턴, 관심사, 관찰된 행동을 차근차근 나눕니다.',
+        },
+        {
+          heading: '이후 흐름',
+          body: '초기상담 결과를 바탕으로 발달평가와 개별화교육계획(IEP) 수립으로 자연스럽게 이어집니다.',
+        },
       ],
     },
   },
@@ -218,11 +275,21 @@ const programs: ProgramSeed[] = [
     tags: ['표준화검사', '행동관찰'],
     meta: '1–2회기 · 종합 결과지 제공',
     detail: {
-      intro: '표준화 도구와 직접 관찰을 함께 사용하여 아이의 강점과 어려움을 입체적으로 분석합니다.',
+      intro:
+        '표준화 도구와 직접 관찰을 함께 사용하여 아이의 강점과 어려움을 입체적으로 분석합니다.',
       sections: [
-        { heading: '프로그램 목적', body: '아이의 인지, 언어, 사회성, 적응행동, 문제행동 영역별 현재 수준을 객관적으로 파악합니다.' },
-        { heading: '운영 방식', body: '1–2회기에 걸쳐 표준화 검사, 행동 관찰, 부모 면담을 조합해 진행하며, 종합 결과지를 제공합니다.' },
-        { heading: '활용', body: '이 결과는 개별화교육계획(IEP) 수립의 기초 자료이자 분기 성취도 상담의 비교 기준으로 활용됩니다.' },
+        {
+          heading: '프로그램 목적',
+          body: '아이의 인지, 언어, 사회성, 적응행동, 문제행동 영역별 현재 수준을 객관적으로 파악합니다.',
+        },
+        {
+          heading: '운영 방식',
+          body: '1–2회기에 걸쳐 표준화 검사, 행동 관찰, 부모 면담을 조합해 진행하며, 종합 결과지를 제공합니다.',
+        },
+        {
+          heading: '활용',
+          body: '이 결과는 개별화교육계획(IEP) 수립의 기초 자료이자 분기 성취도 상담의 비교 기준으로 활용됩니다.',
+        },
       ],
     },
   },
@@ -238,9 +305,18 @@ const programs: ProgramSeed[] = [
     detail: {
       intro: '만 3–5세 아이들이 첫 학습 환경에 부드럽게 적응할 수 있도록 돕는 프로그램입니다.',
       sections: [
-        { heading: '프로그램 목적', body: '착석, 지시 따르기, 차례 기다리기, 활동 전환 같은 기관 생활의 기초를 자연스럽게 익힙니다.' },
-        { heading: '운영 방식', body: '1:1 또는 소그룹으로 주 2–3회 진행하며, 놀이와 상호작용 안에서 학습 기술을 단계적으로 배웁니다.' },
-        { heading: '기대 효과', body: '유치원·어린이집 적응 시기에 또래 안에서 자신감 있게 머무를 수 있는 토대가 자리 잡습니다.' },
+        {
+          heading: '프로그램 목적',
+          body: '착석, 지시 따르기, 차례 기다리기, 활동 전환 같은 기관 생활의 기초를 자연스럽게 익힙니다.',
+        },
+        {
+          heading: '운영 방식',
+          body: '1:1 또는 소그룹으로 주 2–3회 진행하며, 놀이와 상호작용 안에서 학습 기술을 단계적으로 배웁니다.',
+        },
+        {
+          heading: '기대 효과',
+          body: '유치원·어린이집 적응 시기에 또래 안에서 자신감 있게 머무를 수 있는 토대가 자리 잡습니다.',
+        },
       ],
     },
   },
@@ -256,9 +332,18 @@ const programs: ProgramSeed[] = [
     detail: {
       intro: '치료사와 아이가 1:1로 만나, 개별화 목표에 따라 차근차근 나아갑니다.',
       sections: [
-        { heading: '프로그램 목적', body: '아이의 수준과 목표에 맞춘 1:1 중재로 의사소통, 학습 준비, 적응행동, 문제행동의 대체 기술을 다집니다.' },
-        { heading: '운영 방식', body: '주 1–2회, 회기당 40·60·90분 중 아이의 집중도에 맞춰 운영하며, 매 회기 데이터 수집과 부모님 공유가 이어집니다.' },
-        { heading: '기대 효과', body: '행동의 이유를 함께 이해하고, 가정과 기관에서 일관된 방향으로 변화를 만들어갈 수 있습니다.' },
+        {
+          heading: '프로그램 목적',
+          body: '아이의 수준과 목표에 맞춘 1:1 중재로 의사소통, 학습 준비, 적응행동, 문제행동의 대체 기술을 다집니다.',
+        },
+        {
+          heading: '운영 방식',
+          body: '주 1–2회, 회기당 40·60·90분 중 아이의 집중도에 맞춰 운영하며, 매 회기 데이터 수집과 부모님 공유가 이어집니다.',
+        },
+        {
+          heading: '기대 효과',
+          body: '행동의 이유를 함께 이해하고, 가정과 기관에서 일관된 방향으로 변화를 만들어갈 수 있습니다.',
+        },
       ],
     },
   },
@@ -274,9 +359,18 @@ const programs: ProgramSeed[] = [
     detail: {
       intro: '또래와 함께 마음을 나누고, 서로의 속도를 존중하는 연습을 합니다.',
       sections: [
-        { heading: '프로그램 목적', body: '또래와 함께 놀이하고, 차례 지키고, 감정을 이해하며, 사회적 규칙과 조망수용의 기초를 익힙니다.' },
-        { heading: '운영 방식', body: '2–4명 그룹으로 주 1회 60분, 실제 상호작용 장면을 활용해 자연스럽게 연습합니다.' },
-        { heading: '기대 효과', body: '혼자 잘하는 기술을 함께 잘하는 기술로 옮겨 가며, 또래 안에서의 자기 자리를 확인합니다.' },
+        {
+          heading: '프로그램 목적',
+          body: '또래와 함께 놀이하고, 차례 지키고, 감정을 이해하며, 사회적 규칙과 조망수용의 기초를 익힙니다.',
+        },
+        {
+          heading: '운영 방식',
+          body: '2–4명 그룹으로 주 1회 60분, 실제 상호작용 장면을 활용해 자연스럽게 연습합니다.',
+        },
+        {
+          heading: '기대 효과',
+          body: '혼자 잘하는 기술을 함께 잘하는 기술로 옮겨 가며, 또래 안에서의 자기 자리를 확인합니다.',
+        },
       ],
     },
   },
@@ -292,9 +386,18 @@ const programs: ProgramSeed[] = [
     detail: {
       intro: '집에서도 이어갈 수 있도록, 부모님의 손에 작은 도구를 쥐어드립니다.',
       sections: [
-        { heading: '프로그램 목적', body: '부모님과 함께 아이의 변화를 점검하고, 가정에서 적용 가능한 지도 방법을 안내합니다.' },
-        { heading: '운영 방식', body: '월 1회 토요일 90분 진행, 분기 성취도 상담과 연동되어 다음 목표를 함께 결정합니다.' },
-        { heading: '기대 효과', body: '센터에서의 변화가 가정에서도 이어지며, 부모님은 관찰자가 아닌 변화의 팀원이 됩니다.' },
+        {
+          heading: '프로그램 목적',
+          body: '부모님과 함께 아이의 변화를 점검하고, 가정에서 적용 가능한 지도 방법을 안내합니다.',
+        },
+        {
+          heading: '운영 방식',
+          body: '월 1회 토요일 90분 진행, 분기 성취도 상담과 연동되어 다음 목표를 함께 결정합니다.',
+        },
+        {
+          heading: '기대 효과',
+          body: '센터에서의 변화가 가정에서도 이어지며, 부모님은 관찰자가 아닌 변화의 팀원이 됩니다.',
+        },
       ],
     },
   },
@@ -387,7 +490,11 @@ const therapists: TherapistSeed[] = [
       { period: '전', text: '해달별 어린이집 교사' },
       { period: '전', text: '예일 몬테소리 어린이집 교사' },
     ],
-    certifications: ['사회복지사 2급 자격증 (보건복지부)', '보육교사 2급 자격증 (보건복지부)', '요양보호사 자격증'],
+    certifications: [
+      '사회복지사 2급 자격증 (보건복지부)',
+      '보육교사 2급 자격증 (보건복지부)',
+      '요양보호사 자격증',
+    ],
     completion: '정지은 일산 ABA 프로그램 CA 과정 이수 (Curriculum Academy)',
   },
   {
@@ -396,7 +503,11 @@ const therapists: TherapistSeed[] = [
     photo: '../../assets/therapist-4.png',
     tone: 'blue',
     summary: '정지은 일산 ABA 조기교실 치료사 · 국제 행동분석가 자격(QBA) 과정',
-    education: ['중부대학교 중등특수교육학과', '중부대학교 휴먼택대학원 심리행동치료학과 석사', '국제 행동분석가 자격 취득(QBA) 과정'],
+    education: [
+      '중부대학교 중등특수교육학과',
+      '중부대학교 휴먼택대학원 심리행동치료학과 석사',
+      '국제 행동분석가 자격 취득(QBA) 과정',
+    ],
     career: [
       { period: '현', text: '정지은 일산 ABA 조기교실 치료사' },
       { period: '전', text: '새얼학교 진로와 직업 / 공예과목 담당 교사' },
@@ -427,7 +538,10 @@ const therapists: TherapistSeed[] = [
       { period: '현', text: '어린이집 순회 체육교사' },
       { period: '현', text: '유치원 순회 체육교사' },
     ],
-    certifications: ['심리체육발달 재활서비스 제공인력 자격증 (보건복지부)', '행동발달재활서비스 제공인력 자격증 (보건복지부)'],
+    certifications: [
+      '심리체육발달 재활서비스 제공인력 자격증 (보건복지부)',
+      '행동발달재활서비스 제공인력 자격증 (보건복지부)',
+    ],
     completion: '정지은 일산 ABA 프로그램 CA 과정 이수 (Curriculum Academy)',
   },
 ];
@@ -482,7 +596,8 @@ const gallery = [
 const popups = [
   {
     title: '2026 봄학기 신규 상담 안내',
-    content: '조기교실·개별치료·사회성 짝치료 신규 상담을 받고 있습니다.\n카카오톡 채널 또는 전화로 편하게 문의해 주세요.',
+    content:
+      '조기교실·개별치료·사회성 짝치료 신규 상담을 받고 있습니다.\n카카오톡 채널 또는 전화로 편하게 문의해 주세요.',
     imageUrl: '../../assets/photo-reception.jpg',
     linkUrl: '#contact',
     startAt: '2026-05-01',
@@ -515,13 +630,27 @@ async function main(): Promise<void> {
     update: { brand, sections },
     create: { id: 'singleton', brand, sections },
   });
-  await prisma.about.upsert({ where: { id: 'singleton' }, update: about, create: { id: 'singleton', ...about } });
-  await prisma.director.upsert({ where: { id: 'singleton' }, update: director, create: { id: 'singleton', ...director } });
-  await prisma.centerInfo.upsert({ where: { id: 'singleton' }, update: centerInfo, create: { id: 'singleton', ...centerInfo } });
+  await prisma.about.upsert({
+    where: { id: 'singleton' },
+    update: about,
+    create: { id: 'singleton', ...about },
+  });
+  await prisma.director.upsert({
+    where: { id: 'singleton' },
+    update: director,
+    create: { id: 'singleton', ...director },
+  });
+  await prisma.centerInfo.upsert({
+    where: { id: 'singleton' },
+    update: centerInfo,
+    create: { id: 'singleton', ...centerInfo },
+  });
 
   // Nav (reset to seed order)
   await prisma.navItem.deleteMany({});
-  await prisma.navItem.createMany({ data: nav.map((n, i) => ({ id: n.id, label: n.label, order: i, visible: true })) });
+  await prisma.navItem.createMany({
+    data: nav.map((n, i) => ({ id: n.id, label: n.label, order: i, visible: true })),
+  });
 
   // Ordered collections (reset to seed)
   await prisma.heroSlide.deleteMany({});
