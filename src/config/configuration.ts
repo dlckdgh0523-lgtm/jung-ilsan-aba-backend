@@ -6,11 +6,13 @@ export interface AppConfig {
   admin: { username: string; password: string };
   corsOrigins: string[];
   upload: {
+    driver: 'local' | 's3';
     dir: string;
     publicBase: string;
     maxBytes: number;
     imageMaxWidth: number;
   };
+  s3: { region: string; bucket: string; publicBase: string; keyPrefix: string };
   consultation: { rateTtl: number; rateLimit: number };
   stats: { concurrentWindowSeconds: number };
   static: { enabled: boolean; root: string };
@@ -41,10 +43,17 @@ export default (): AppConfig => ({
   },
   corsOrigins: toList(process.env.CORS_ORIGINS),
   upload: {
+    driver: process.env.UPLOAD_DRIVER === 's3' ? 's3' : 'local',
     dir: process.env.UPLOAD_DIR ?? 'storage/uploads',
     publicBase: process.env.UPLOAD_PUBLIC_BASE ?? '/uploads',
     maxBytes: toInt(process.env.UPLOAD_MAX_BYTES, 5 * 1024 * 1024),
     imageMaxWidth: toInt(process.env.UPLOAD_IMAGE_MAX_WIDTH, 1600),
+  },
+  s3: {
+    region: process.env.S3_REGION ?? 'ap-northeast-2',
+    bucket: process.env.S3_BUCKET ?? '',
+    publicBase: (process.env.S3_PUBLIC_BASE ?? '').replace(/\/+$/, ''),
+    keyPrefix: process.env.S3_KEY_PREFIX ?? 'uploads/',
   },
   consultation: {
     rateTtl: toInt(process.env.CONSULTATION_RATE_TTL, 60),

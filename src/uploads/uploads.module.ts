@@ -4,6 +4,7 @@ import { MulterModule } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { AppException } from '../common/exceptions/app.exception';
 import { LocalStorageService } from '../common/storage/local-storage.service';
+import { S3StorageService } from '../common/storage/s3-storage.service';
 import { STORAGE_SERVICE } from '../common/storage/storage.interface';
 import type { AppConfig } from '../config/configuration';
 import { UploadsController } from './uploads.controller';
@@ -36,6 +37,17 @@ const ALLOWED_MIME = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gi
     }),
   ],
   controllers: [UploadsController],
-  providers: [UploadsService, { provide: STORAGE_SERVICE, useClass: LocalStorageService }],
+  providers: [
+    UploadsService,
+    {
+      provide: STORAGE_SERVICE,
+      inject: [ConfigService],
+      // Swap local-disk ↔ S3 via UPLOAD_DRIVER without touching upload logic.
+      useFactory: (config: ConfigService<AppConfig, true>) =>
+        config.get('upload', { infer: true }).driver === 's3'
+          ? new S3StorageService(config)
+          : new LocalStorageService(config),
+    },
+  ],
 })
 export class UploadsModule {}

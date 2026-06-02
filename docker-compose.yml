@@ -45,11 +45,8 @@ services:
       - '80:80'
       # - '443:443'   # enable after mounting TLS certs (see DEPLOY.md)
     volumes:
+      # Frontend is hosted on Vercel and uploads go to S3 — Nginx is just an API reverse proxy.
       - ./deploy/nginx.conf:/etc/nginx/conf.d/default.conf:ro
-      # Mount the frontend ROOT (front-jungAba) so /ui_kits/website/* and /assets/* both resolve.
-      - ${STATIC_ROOT_HOST:-../front-jungAba}:/usr/share/nginx/html:ro
-      # Same volume the app writes uploads to — Nginx serves them directly.
-      - uploads:/usr/share/nginx/uploads:ro
     profiles: ['proxy']
 
 volumes:

@@ -1,7 +1,7 @@
 # 정지은 일산 ABA — 백엔드 작업 메모리 (memory.md)
 
 > 이 파일은 작업의 단일 기억 저장소입니다. **매 작업마다 끝에 작업 로그를 갱신**합니다.
-> 마지막 갱신: 2026-06-03 (작업 18 — ★프론트 폴더 정정: 실프론트는 front-jungAba)
+> 마지막 갱신: 2026-06-03 (작업 19 — 배포 아키텍처 확정: Vercel + EC2 + S3)
 
 ---
 
@@ -214,4 +214,10 @@ Helmet, CORS 화이트리스트, ValidationPipe(whitelist+transform), 관리자 
   - 검증: compose nginx 재생성(front-jungAba 마운트) → `/`302, `/ui_kits/website/index.html`200(api.js 태그), api.js 서빙(ABA_API), `/assets/program-1.png`·`photo-reception.jpg`200, `/v1/health`200. **실프론트 연동·서빙 정상.**
   - ⚠ front-jungAba/`uploads/`(기존 실 업로드 이미지)는 nginx `/uploads/`가 백엔드 볼륨을 가리켜 prod 자동 서빙 X — 단 data.js는 `../../assets` 플레이스홀더만 참조하므로 깨짐 없음. aba-design-system 사본의 내 편집분은 무해(미배포); **front-jungAba가 canonical**.
   - **실 교사사진 시드 반영(사용자 요청, 2026-06-03)**: 시드/data.js가 이미 `../../assets/therapist-1..5.png`를 참조하므로, **그 경로의 파일을 실제 사진으로 교체**(seed.ts 코드 변경 불필요). 매핑(성씨+번호=시드 치료사 순서, 확인됨): `uploads/kang 1.png`→therapist-1(강OO), `kim-2`→2(김OO), `kang-3`→3(강OO), `kim-4`→4(김OO), `lee-5`→5(이OO). front-jungAba/assets/therapist-N.png 덮어씀(플레이스홀더 86~127KB→실사진 172~253KB). 검증: nginx `/assets/therapist-1.png` 200·258KB, API therapists photo 경로 동일 → 실사진 해소. therapist-1.png 시각확인=‘01 강OO 선생님’ 카드(시드 학력/자격과 일치). **⚠ 주의: 이 업로드들은 헤드샷이 아니라 사진+약력 전체 ‘카드’ 이미지** → 사이트에서 치료사 photo로 카드가 통째로 표시됨(헤드샷만 원하면 별도 크롭 필요, 사용자 결정). 배포 시 front-jungAba(교체된 assets 포함) 전송하면 기존 시드로 실사진 자동 표시. git은 사용자가 직접 연동 예정(프론트 커밋 안 함).
-  - **센터장 사진 시드 연결(2026-06-03)**: `seed.ts` director.photo `''`→`'../../assets/photo-director.jpg'`(=정지은 원장 실사진, 시각확인). compose 재시드(`docker compose cp seed.ts` + exec, 재빌드 없이) 검증: API director photo=해당경로, `/assets/photo-director.jpg` 200(370KB), 교사 real 유지. **⚠ seed.ts 변경은 미커밋 — 사용자 백엔드 커밋+푸시 시 포함되어야 Oracle 배포 시드에 반영됨.** 사용자: 백엔드 커밋+푸시 + Oracle ARM 무료티어 배포 진행 중 → 연동 안내 제공.
+  - **센터장 사진 시드 연결(2026-06-03)**: `seed.ts` director.photo `''`→`'../../assets/photo-director.jpg'`(=정지은 원장 실사진, 시각확인). compose 재시드(`docker compose cp seed.ts` + exec, 재빌드 없이) 검증: API director photo=해당경로, `/assets/photo-director.jpg` 200(370KB), 교사 real 유지. **⚠ seed.ts 변경은 미커밋 — 사용자 백엔드 커밋+푸시 시 포함되어야 배포 시드에 반영됨.**
+- **작업 19 (2026-06-03) — 배포 아키텍처 확정: Vercel(프론트) + EC2(백엔드) + S3(업로드)** (사용자 결정; Oracle 가입 실패 → 대안):
+  - **#16 S3 드라이버**: `@aws-sdk/client-s3` 설치. `S3StorageService implements StorageService`(PutObject/DeleteObject; 자격증명=기본 체인=**EC2 IAM 인스턴스 역할**, 키 미보관; public-read 버킷; url=`S3_PUBLIC_BASE||https://<bucket>.s3.<region>.amazonaws.com`/key). config: `upload.driver`(`UPLOAD_DRIVER=local|s3`) + `s3{region(기본 ap-northeast-2)/bucket/publicBase/keyPrefix(uploads/)}`. UploadsModule provider를 `useFactory`(driver==='s3'?S3:Local). **비파괴(기본 local)**. 빌드 EXIT0, unit 20 통과, `UPLOAD_DRIVER=s3` DI 스모크 부팅 OK. (실 S3 PutObject는 배포 시 IAM 역할로 검증.)
+  - **#17 분할배포 설정**: 프론트=Vercel/백엔드=EC2 = **교차출처**(이미 :5173↔:4000로 CORS·SSE·업로드 검증된 패턴). `front-jungAba/ui_kits/website/config.js` 신설(`window.ABA_API_BASE`) + index.html·admin.html에 `<script src="config.js">`(api.js 앞) 삽입. `front-jungAba/vercel.json`(`/`→`/ui_kits/website/index.html`). **nginx.conf=API 전용 리버스프록시로 재작성**(정적 SPA 서빙 제거; `/v1/realtime` SSE + `/`→app; CORS는 Nest가 추가). `docker-compose` nginx 볼륨에서 프론트/uploads 마운트 제거(nginx.conf만). 검증: compose nginx 재생성→ `/v1/health|programs|popups` 200, `/ui_kits/website/index.html` 404(정상=프론트는 Vercel).
+  - **#18 DEPLOY.md 전면 재작성**(Vercel+EC2+S3): **★백엔드 HTTPS 필수**(Vercel=HTTPS → EC2 HTTP면 mixed-content 차단) — 도메인+certbot 또는 **Cloudflare**(가장 쉬움). S3 버킷정책(public-read)+IAM 역할 JSON 포함. EC2(t3.micro+**swap 2GB**, 보안그룹 22/80/443, Elastic IP, IAM 역할 연결). `.env`(UPLOAD_DRIVER=s3, S3_*, CORS_ORIGINS=Vercel주소). Vercel 배포 + `config.js` ABA_API_BASE=백엔드HTTPS. 보안체크리스트 갱신.
+  - **EC2엔 백엔드만 필요**(프론트는 Vercel — front-jungAba 전송 불필요). 최종 `test:cov` **30/30 통과**, 커버리지 lines 79%.
+  - **사용자 남은 일**: ① 백엔드 커밋·푸시(S3 코드+seed.ts director+nginx/compose/DEPLOY 포함) ② S3 버킷+IAM 역할 ③ EC2 생성+TLS ④ Vercel 배포 + config.js URL + 백엔드 CORS_ORIGINS. git은 사용자 직접.
