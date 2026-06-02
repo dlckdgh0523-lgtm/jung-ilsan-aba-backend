@@ -58,7 +58,9 @@ async function bootstrap(): Promise<void> {
     new ValidationPipe({
       whitelist: true,
       transform: true,
-      transformOptions: { enableImplicitConversion: true },
+      // NOTE: do NOT enable implicit conversion globally — it mangles JSON object[]
+      // body fields (e.g. director.career [{period,text}]) into [[]]. Numeric query/body
+      // fields that arrive as strings use an explicit @Type(() => Number) instead.
       exceptionFactory: (errors) =>
         new AppException(
           HttpStatus.UNPROCESSABLE_ENTITY,

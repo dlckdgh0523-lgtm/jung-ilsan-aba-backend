@@ -1,4 +1,5 @@
 import { IsArray, IsInt, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
+import { Type } from 'class-transformer';
 import { OrderedContentDto } from '../../common/dto/ordered-content.dto';
 
 export class CreateGalleryDto extends OrderedContentDto {
@@ -15,6 +16,7 @@ export class CreateGalleryDto extends OrderedContentDto {
 
   /** Grid column span: 1 or 2. */
   @IsOptional()
+  @Type(() => Number)
   @IsInt()
   @Min(1)
   @Max(2)
