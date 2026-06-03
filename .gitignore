@@ -37,3 +37,6 @@ prisma/*.db
 
 # editor / tooling (local)
 .claude/
+
+# internal working notes (do not publish)
+memory.md
