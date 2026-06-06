@@ -149,6 +149,7 @@ model Therapist {
   career         Json      @default("[]")
   certifications Json      @default("[]")
   teaching       Json      @default("[]")
+  papers         Json      @default("[]")
   completion     String?
   order          Int       @default(0)
   visible        Boolean   @default(true)

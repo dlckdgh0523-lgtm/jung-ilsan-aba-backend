@@ -47,6 +47,11 @@ export class CreateTherapistDto extends OrderedContentDto {
   @IsString({ each: true })
   teaching?: string[];
 
+  /** [{ year, title }] — shape owned by the frontend, validated loosely. */
+  @IsOptional()
+  @IsArray()
+  papers?: Record<string, unknown>[];
+
   @IsOptional()
   @IsString()
   @MaxLength(500)
