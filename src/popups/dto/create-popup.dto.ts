@@ -1,13 +1,4 @@
-import {
-  IsBoolean,
-  IsInt,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  Matches,
-  MaxLength,
-  Min,
-} from 'class-validator';
+import { IsBoolean, IsInt, IsOptional, IsString, Matches, MaxLength, Min } from 'class-validator';
 
 const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -17,10 +8,11 @@ const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
  * `startAt`/`endAt` are date-only strings; the frontend appends "T00:00:00".
  */
 export class CreatePopupDto {
+  // Optional: popups can be image-only (no title/content rendered on the public side).
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
   @MaxLength(200)
-  title!: string;
+  title?: string;
 
   @IsOptional()
   @IsString()
