@@ -1,4 +1,5 @@
 import {
+  IsArray,
   IsBoolean,
   IsInt,
   IsNotEmpty,
@@ -25,6 +26,16 @@ export class CreateNoticeDto extends OrderedContentDto {
   @IsString()
   @MaxLength(40)
   date?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(1000)
+  image?: string;
+
+  /** [{ name, url, size }] — uploaded files (xlsx/pdf/etc.); shape owned by the frontend. */
+  @IsOptional()
+  @IsArray()
+  attachments?: Record<string, unknown>[];
 
   @IsOptional()
   @IsBoolean()

@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { DeleteObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { randomUUID } from 'node:crypto';
 import type { AppConfig } from '../../config/configuration';
-import { StorageService, StoredFile } from './storage.interface';
+import { SaveOptions, StorageService, StoredFile } from './storage.interface';
 
 const CONTENT_TYPE: Record<string, string> = {
   jpg: 'image/jpeg',
@@ -36,14 +36,15 @@ export class S3StorageService implements StorageService {
     this.publicBase = s3.publicBase || `https://${s3.bucket}.s3.${s3.region}.amazonaws.com`;
   }
 
-  async save(buffer: Buffer, ext: string): Promise<StoredFile> {
+  async save(buffer: Buffer, ext: string, opts?: SaveOptions): Promise<StoredFile> {
     const key = `${this.keyPrefix}${randomUUID()}.${ext}`;
     await this.client.send(
       new PutObjectCommand({
         Bucket: this.bucket,
         Key: key,
         Body: buffer,
-        ContentType: CONTENT_TYPE[ext] ?? 'application/octet-stream',
+        ContentType: opts?.contentType ?? CONTENT_TYPE[ext] ?? 'application/octet-stream',
+        ...(opts?.contentDisposition ? { ContentDisposition: opts.contentDisposition } : {}),
         CacheControl: 'public, max-age=31536000, immutable',
       }),
     );

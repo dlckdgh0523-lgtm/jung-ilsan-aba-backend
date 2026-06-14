@@ -16,6 +16,17 @@ export interface UploadResult {
   format: string;
 }
 
+/** Generic (non-image) file upload — Excel/PDF/etc. for notice attachments. */
+export interface FileUploadResult {
+  url: string;
+  name: string;
+  size: number;
+  ext: string;
+}
+
+/** Max size for non-image file attachments (documents). */
+const FILE_MAX_BYTES = 15 * 1024 * 1024;
+
 @Injectable()
 export class UploadsService {
   private readonly maxWidth: number;
@@ -56,5 +67,27 @@ export class UploadsService {
       bytes: out.info.size,
       format: out.info.format,
     };
+  }
+
+  /** Persist an arbitrary file (xlsx/pdf/etc.) as-is; forces a download with its original name. */
+  async saveFile(file: Express.Multer.File): Promise<FileUploadResult> {
+    if (!file?.buffer?.length) {
+      throw AppException.unprocessable('업로드할 파일이 없습니다.', 'FILE_REQUIRED', {
+        file: '파일을 선택해 주세요.',
+      });
+    }
+    if (file.size > FILE_MAX_BYTES) {
+      throw AppException.unprocessable('파일이 너무 큽니다.', 'FILE_TOO_LARGE', {
+        file: `최대 ${Math.round(FILE_MAX_BYTES / 1024 / 1024)}MB까지 업로드할 수 있습니다.`,
+      });
+    }
+    const original = file.originalname || 'file';
+    const extMatch = original.match(/\.([A-Za-z0-9]{1,8})$/);
+    const ext = (extMatch ? extMatch[1] : 'bin').toLowerCase();
+    const stored = await this.storage.save(file.buffer, ext, {
+      contentType: file.mimetype || 'application/octet-stream',
+      contentDisposition: `attachment; filename*=UTF-8''${encodeURIComponent(original)}`,
+    });
+    return { url: stored.url, name: original, size: file.size, ext };
   }
 }

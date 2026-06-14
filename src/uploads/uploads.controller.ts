@@ -1,7 +1,7 @@
 import { Controller, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AdminOnly } from '../auth/decorators/admin-only.decorator';
-import { UploadResult, UploadsService } from './uploads.service';
+import { FileUploadResult, UploadResult, UploadsService } from './uploads.service';
 
 @Controller('uploads')
 export class UploadsController {
@@ -13,5 +13,13 @@ export class UploadsController {
   @UseInterceptors(FileInterceptor('file'))
   upload(@UploadedFile() file: Express.Multer.File): Promise<UploadResult> {
     return this.uploads.saveImage(file);
+  }
+
+  /** `POST /uploads/file` — multipart field `file`; stores any file (xlsx/pdf/...) for download. */
+  @Post('file')
+  @AdminOnly()
+  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 16 * 1024 * 1024 } }))
+  uploadFile(@UploadedFile() file: Express.Multer.File): Promise<FileUploadResult> {
+    return this.uploads.saveFile(file);
   }
 }

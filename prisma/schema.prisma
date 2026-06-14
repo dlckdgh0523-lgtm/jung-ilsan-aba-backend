@@ -166,6 +166,8 @@ model Notice {
   title     String
   body      String?
   date      String? // free-form display string e.g. "2026.05.18" (frontend uses dots)
+  image       String?
+  attachments Json      @default("[]")
   pinned    Boolean   @default(false)
   views     Int       @default(0)
   order     Int       @default(0)
