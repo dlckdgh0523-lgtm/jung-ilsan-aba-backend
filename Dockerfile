@@ -28,7 +28,9 @@ COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/tsconfig*.json ./
 
-RUN mkdir -p storage/uploads && chown -R node:node /app
+# Only the writable upload dir needs `node` ownership — node_modules/dist/prisma stay
+# root-owned but world-readable (avoids a slow recursive chown over all of node_modules).
+RUN mkdir -p storage/uploads && chown -R node:node /app/storage
 USER node
 EXPOSE 4000
 
