@@ -81,7 +81,9 @@ export class UploadsService {
         file: `최대 ${Math.round(FILE_MAX_BYTES / 1024 / 1024)}MB까지 업로드할 수 있습니다.`,
       });
     }
-    const original = file.originalname || 'file';
+    // multer/busboy decodes the multipart filename as latin1 by default, which mojibakes
+    // non-ASCII (Korean) names. Re-interpret the raw bytes as UTF-8 to recover the real name.
+    const original = Buffer.from(file.originalname || 'file', 'latin1').toString('utf8');
     const extMatch = original.match(/\.([A-Za-z0-9]{1,8})$/);
     const ext = (extMatch ? extMatch[1] : 'bin').toLowerCase();
     const stored = await this.storage.save(file.buffer, ext, {
