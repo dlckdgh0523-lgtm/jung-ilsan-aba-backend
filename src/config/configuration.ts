@@ -12,7 +12,14 @@ export interface AppConfig {
     maxBytes: number;
     imageMaxWidth: number;
   };
-  s3: { region: string; bucket: string; publicBase: string; keyPrefix: string };
+  s3: {
+    region: string;
+    bucket: string;
+    publicBase: string;
+    keyPrefix: string;
+    endpoint: string;
+    forcePathStyle: boolean;
+  };
   consultation: { rateTtl: number; rateLimit: number };
   stats: { concurrentWindowSeconds: number };
   static: { enabled: boolean; root: string };
@@ -54,6 +61,15 @@ export default (): AppConfig => ({
     bucket: process.env.S3_BUCKET ?? '',
     publicBase: (process.env.S3_PUBLIC_BASE ?? '').replace(/\/+$/, ''),
     keyPrefix: process.env.S3_KEY_PREFIX ?? 'uploads/',
+    // S3-compatible providers (Cloudflare R2, Backblaze B2, MinIO, KT Cloud Object Storage…).
+    // e.g. R2: https://<ACCOUNT_ID>.r2.cloudflarestorage.com  — leave empty for AWS S3.
+    endpoint: (process.env.S3_ENDPOINT ?? '').replace(/\/+$/, ''),
+    // Most S3-compatible providers need path-style addressing; default ON when a custom
+    // endpoint is set, overridable with S3_FORCE_PATH_STYLE=true|false.
+    forcePathStyle:
+      process.env.S3_FORCE_PATH_STYLE != null
+        ? process.env.S3_FORCE_PATH_STYLE === 'true'
+        : Boolean(process.env.S3_ENDPOINT),
   },
   consultation: {
     rateTtl: toInt(process.env.CONSULTATION_RATE_TTL, 60),
