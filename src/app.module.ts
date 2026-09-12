@@ -22,6 +22,11 @@ import { RealtimeModule } from './realtime/realtime.module';
 import { StatsModule } from './stats/stats.module';
 import { PrivacyModule } from './privacy/privacy.module';
 import { UploadsModule } from './uploads/uploads.module';
+import { ArticlesModule } from './articles/articles.module';
+import { ArticleCategoriesModule } from './article-categories/article-categories.module';
+import { TagsModule } from './tags/tags.module';
+import { FaqsModule } from './faqs/faqs.module';
+import { SeoModule } from './seo/seo.module';
 
 @Module({
   imports: [
@@ -50,6 +55,11 @@ import { UploadsModule } from './uploads/uploads.module';
     StatsModule,
     PrivacyModule,
     UploadsModule,
+    ArticlesModule,
+    ArticleCategoriesModule,
+    TagsModule,
+    FaqsModule,
+    SeoModule,
   ],
   controllers: [HealthController],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],

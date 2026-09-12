@@ -14,6 +14,12 @@ export class CreateGalleryDto extends OrderedContentDto {
   @MaxLength(300)
   title?: string;
 
+  /** Longer description shown in the lightbox (plain text, line breaks kept). */
+  @IsOptional()
+  @IsString()
+  @MaxLength(5000)
+  body?: string;
+
   /** Grid column span: 1 or 2. */
   @IsOptional()
   @Type(() => Number)

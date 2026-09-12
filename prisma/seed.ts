@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
+import { seedContent } from './seed-content';
 
 const prisma = new PrismaClient();
 
@@ -9,7 +10,7 @@ const brand = {
   nameKo: '정지은 일산 ABA',
   nameEn: 'CHUNG ji eun applied behavior analysis',
   tagline: '한 아이의 속도로, 한 걸음씩.',
-  address: '경기도 고양시 일산서구 주엽동 18번지 자유프라자 606호',
+  address: '경기도 고양시 일산서구 주엽로 150 자유프라자 606호 (주엽동)',
   phone: '031-977-2575',
   fax: '031-977-2575',
   kakaoId: '@jungjieun_aba',
@@ -732,6 +733,9 @@ async function main(): Promise<void> {
       order: i,
     })),
   });
+
+  // ── Content platform (blog/tags/FAQ) — non-destructive: upsert only, never delete ──
+  await seedContent(prisma);
 
   // Privacy docs
   await prisma.privacyDoc.upsert({

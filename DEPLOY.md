@@ -151,3 +151,21 @@ sudo certbot certonly --standalone -d api.도메인.com   # 80 필요(nginx 잠�
 | 비밀값 .env 분리(커밋 금지) | ✅ | `.env.example` |
 
 **운영 전 필수**: `JWT_SECRET`·`POSTGRES_PASSWORD` 강력하게, `CORS_ORIGINS`=Vercel 주소, **백엔드 HTTPS**, `config.js`의 `ABA_API_BASE`=백엔드 HTTPS 주소, S3 버킷 정책·IAM 역할.
+
+---
+
+## 10. 콘텐츠 플랫폼 (블로그·태그·FAQ) 배포 — 2026-09 추가
+1. **DB 마이그레이션**: 자동. 컨테이너/Render 시작 시 `prisma migrate deploy`가
+   `20260913000000_content_platform`(articles / article_categories / tags / article_tags / faq_items —
+   **추가 전용**, 기존 테이블·데이터 무변경)을 적용한다.
+2. **기본 데이터 시드 (1회)**: 배포 후 한 번 실행 —
+   ```bash
+   npm run db:seed:content
+   ```
+   upsert 전용이라 **프로덕션에서 안전**하다 (기존 게시글·태그를 절대 덮어쓰거나 삭제하지 않음).
+   ⚠️ `npm run db:seed`(전체 시드)는 공지·프로그램 등을 mock으로 리셋하므로 프로덕션에서 금지.
+3. **SEO 페이지**: 백엔드가 크롤러용 페이지를 직접 렌더링한다 —
+   `/v1/sitemap.xml`, `/v1/seo/blog`, `/v1/seo/blog/:slug`, `/v1/seo/tags/:slug`.
+   프론트(Vercel) `vercel.json`이 `/sitemap.xml`, `/blog`, `/blog/:slug`, `/tags/:slug`를 여기로 rewrite한다.
+   백엔드 도메인이 바뀌면 `vercel.json`의 rewrite 대상도 함께 수정할 것.
+   선택: `FRONT_BASE_URL` 환경변수로 canonical 도메인 지정 (기본 `https://www.chungaba.com`).

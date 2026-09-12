@@ -184,6 +184,7 @@ model GalleryItem {
   id        String    @id @default(cuid())
   src       String?
   title     String? // caption
+  body      String? // longer description shown in the lightbox
   span      Int       @default(1) // 1 | 2 (grid column span)
   tags      Json      @default("[]")
   order     Int       @default(0)
@@ -239,6 +240,102 @@ model Consultation {
   @@index([status])
   @@index([isRead])
   @@map("consultations")
+}
+
+// ── Content platform (blog / tags / FAQ) — see GEO·SEO spec ────────────────
+model ArticleCategory {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?
+  order       Int       @default(0)
+  visible     Boolean   @default(true)
+  deletedAt   DateTime? @map("deleted_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  articles    Article[]
+
+  @@index([deletedAt, visible, order])
+  @@map("article_categories")
+}
+
+model Tag {
+  id             String       @id @default(cuid())
+  name           String       @unique
+  slug           String       @unique
+  description    String?
+  seoTitle       String?      @map("seo_title")
+  seoDescription String?      @map("seo_description")
+  // LOCATION | SERVICE | CONDITION | AUDIENCE | TOPIC (validated in DTO)
+  tagType        String       @default("TOPIC") @map("tag_type")
+  // Admin override: force-include this tag page in sitemap/indexing even with <3 posts.
+  seoIndexed     Boolean      @default(false) @map("seo_indexed")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+  articles       ArticleTag[]
+
+  @@map("tags")
+}
+
+model Article {
+  id                 String           @id @default(cuid())
+  title              String
+  slug               String           @unique
+  excerpt            String?
+  content            String? // rich HTML from the admin editor (sanitized on render)
+  thumbnail          String?
+  categoryId         String?          @map("category_id")
+  category           ArticleCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  // SEO
+  seoTitle           String?          @map("seo_title")
+  seoDescription     String?          @map("seo_description")
+  canonicalUrl       String?          @map("canonical_url")
+  // GEO — links the article to the institution's context
+  targetAudience     String?          @map("target_audience")
+  relatedProgram     String?          @map("related_program") // Program.id
+  relatedLocation    String?          @map("related_location")
+  faqItems           Json             @default("[]") @map("faq_items") // [{ q, a }]
+  structuredDataType String?          @map("structured_data_type") // Article (default) | FAQPage
+  isFeatured         Boolean          @default(false) @map("is_featured")
+  // Publishing
+  status             String           @default("draft") // draft | published
+  publishedAt        DateTime?        @map("published_at")
+  views              Int              @default(0)
+  order              Int              @default(0)
+  visible            Boolean          @default(true)
+  deletedAt          DateTime?        @map("deleted_at")
+  createdAt          DateTime         @default(now()) @map("created_at")
+  updatedAt          DateTime         @updatedAt @map("updated_at")
+  tags               ArticleTag[]
+
+  @@index([deletedAt, visible, status, publishedAt])
+  @@index([categoryId])
+  @@map("articles")
+}
+
+model ArticleTag {
+  articleId String  @map("article_id")
+  tagId     String  @map("tag_id")
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([articleId, tagId])
+  @@index([tagId])
+  @@map("article_tags")
+}
+
+model FaqItem {
+  id        String    @id @default(cuid())
+  question  String
+  answer    String
+  order     Int       @default(0)
+  visible   Boolean   @default(true)
+  deletedAt DateTime? @map("deleted_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  @@index([deletedAt, visible, order])
+  @@map("faq_items")
 }
 
 // ── Misc ─────────────────────────────────────────────────────────────────────

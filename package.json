@@ -25,6 +25,7 @@
     "prisma:migrate:dev": "prisma migrate dev",
     "prisma:studio": "prisma studio",
     "db:seed": "ts-node -r tsconfig-paths/register prisma/seed.ts",
+    "db:seed:content": "ts-node -r tsconfig-paths/register prisma/seed-content.ts",
     "db:reset": "prisma migrate reset --force"
   },
   "prisma": {
