@@ -1,13 +1,19 @@
 import { PrismaClient } from '@prisma/client';
 
 /**
- * Content-platform seed (categories / tags / FAQ) — SAFE TO RUN ON PRODUCTION.
- * Upsert-only: never deletes or overwrites admin-edited rows (update: {}),
- * and FAQ rows are inserted only when the table is completely empty.
+ * Content-platform seed (categories / tags / FAQ) — SAFE TO RUN ON PRODUCTION,
+ * including automatically at container boot (see Dockerfile CMD):
+ * each table is seeded ONLY while completely empty, so admin edits and even
+ * deletions are never overwritten or resurrected by later runs.
  *
  *   npm run db:seed:content
  */
 export async function seedContent(prisma: PrismaClient): Promise<void> {
+  const [categoryCount, tagCount] = await Promise.all([
+    prisma.articleCategory.count(),
+    prisma.tag.count(),
+  ]);
+
   const articleCategories = [
     { slug: 'news', name: '센터 소식', description: '정지은일산ABA의 소식과 일정 안내입니다.' },
     {
@@ -26,12 +32,14 @@ export async function seedContent(prisma: PrismaClient): Promise<void> {
       description: '센터 프로그램에 대한 안내입니다.',
     },
   ];
-  for (const [i, c] of articleCategories.entries()) {
-    await prisma.articleCategory.upsert({
-      where: { slug: c.slug },
-      update: {},
-      create: { ...c, order: i },
-    });
+  if (categoryCount === 0) {
+    for (const [i, c] of articleCategories.entries()) {
+      await prisma.articleCategory.upsert({
+        where: { slug: c.slug },
+        update: {},
+        create: { ...c, order: i },
+      });
+    }
   }
 
   const seedTags = [
@@ -102,8 +110,10 @@ export async function seedContent(prisma: PrismaClient): Promise<void> {
       description: '문제행동의 기능을 분석하고 대체행동을 가르치는 중재 정보입니다.',
     },
   ];
-  for (const t of seedTags) {
-    await prisma.tag.upsert({ where: { slug: t.slug }, update: {}, create: t });
+  if (tagCount === 0) {
+    for (const t of seedTags) {
+      await prisma.tag.upsert({ where: { slug: t.slug }, update: {}, create: t });
+    }
   }
 
   // Public FAQ — mirrors the FAQPage JSON-LD in the frontend <head>. Seed once, never overwrite.

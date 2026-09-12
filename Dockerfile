@@ -35,4 +35,6 @@ USER node
 EXPOSE 4000
 
 # Apply pending migrations, then start. (Seed is a one-off — see DEPLOY.md.)
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main.js"]
+# Content seed is empty-tables-only + idempotent, so booting with it is safe;
+# `|| echo` keeps a transient seed failure from blocking the server start.
+CMD ["sh", "-c", "npx prisma migrate deploy && (npm run db:seed:content || echo 'content seed skipped') && node dist/main.js"]
