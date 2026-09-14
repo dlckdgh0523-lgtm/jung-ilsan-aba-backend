@@ -86,7 +86,9 @@ async function measureOne(n: number, prompt: string): Promise<PromptResult> {
     if (k < REPEAT - 1) await new Promise((r) => setTimeout(r, 500));
   }
   const okRuns = runs.filter((r) => r.ok);
-  const need = Math.ceil(REPEAT / 2);
+  // 집계 규칙(고정, v2): REPEAT회 중 1회 이상 나오면 카운트("any").
+  // 규칙을 바꾸면 축이 흔들려 주간 비교가 무의미해진다 — trend.json에 repeat/rule을 함께 기록.
+  const need = 1;
   const mentionRuns = okRuns.filter((r) => r.ourMention).length;
   const citedRuns = okRuns.filter((r) => r.ourCited).length;
   const urls = [
@@ -199,7 +201,14 @@ async function main(): Promise<void> {
 
   // 추세 기록(trend.json) — 관리자 대시보드 "AI 노출 추이" 카드가 이 파일을 읽는다.
   const trendPath = path.join(outDir, 'trend.json');
-  let trend: { date: string; mention: number; cited: number; ok: number }[] = [];
+  let trend: {
+    date: string;
+    mention: number;
+    cited: number;
+    ok: number;
+    repeat?: number;
+    rule?: string;
+  }[] = [];
   try {
     trend = JSON.parse(fs.readFileSync(trendPath, 'utf8')) as typeof trend;
   } catch {
@@ -207,21 +216,31 @@ async function main(): Promise<void> {
   }
   const prev = [...trend].reverse().find((t) => t.date !== date) ?? null;
   trend = trend.filter((t) => t.date !== date); // 같은 날 재실행 → 갱신
-  trend.push({ date, mention, cited, ok: okCount });
+  trend.push({ date, mention, cited, ok: okCount, repeat: REPEAT, rule: 'any' });
   fs.writeFileSync(trendPath, JSON.stringify(trend, null, 2));
   const sign = (n: number) => (n >= 0 ? `+${n}` : `${n}`);
+  // 방법론(반복 수)이 다른 시점과의 비교는 참고로만 — 축이 다르다.
+  const methodChanged = prev && (prev.repeat ?? 1) !== REPEAT;
   const deltaLine = prev
-    ? `직전 측정(${prev.date}) 대비: 언급 ${sign(mention - prev.mention)} · 인용 ${sign(cited - prev.cited)}`
+    ? `직전 측정(${prev.date}) 대비: 언급 ${sign(mention - prev.mention)} · 인용 ${sign(cited - prev.cited)}` +
+      (methodChanged
+        ? ` ※ 측정 방식 변경(반복 ${prev.repeat ?? 1}→${REPEAT}회) — 직접 비교 금지, 참고만`
+        : '')
     : '첫 측정 (비교 대상 없음)';
 
   const md = `# GEO A트랙 API 측정 리포트 — ${date}
 
 > **주의: API 측정치는 실제 사용자 화면(ChatGPT 웹·Perplexity·네이버 AI브리핑·구글 AI Overview)과 다를 수 있는 참고 지표입니다.** 공식 기록은 B트랙(수동 측정)입니다.
 
-- 모델: ${MODEL} · 웹서치 max_uses=1/요청 · **프롬프트당 ${REPEAT}회 측정, 과반 기준 집계**
+- 모델: ${MODEL} · 웹서치 max_uses=1/요청 · **프롬프트당 ${REPEAT}회 측정, 1회 이상 나오면 카운트(rule=any, v2)**
 - 성공 ${okCount}/${PROMPTS.length} · **우리 언급 ${mention}건 · 우리 인용 ${cited}건**
 - **${deltaLine}**
-- ⚠️ LLM 응답은 비결정적입니다 — 주간 ±1~2 변화는 노이즈 범위일 수 있으니 **추세(방향)**로 판단하세요.
+
+## 해석 가이드 (읽고 나서 숫자를 보세요)
+
+- ⚠️ LLM 응답은 비결정적 — 주간 ±1~2 변화는 노이즈 범위. **추세(방향)**로 판단.
+- 📌 제로 시점(2026-09-14)의 언급 1건은 **채용공고(사람인·병원잡)가 소스**였음. 채용공고는 마감되면 내려가는 **시한부 소스**라서, 언급이 0으로 떨어져도 사이트가 나빠진 게 아니라 "공고 의존이 끊긴 것"일 수 있다. 진짜 지표는 **인용(chungaba.com이 근거로 쓰였는가)**의 상승이다.
+- 📐 반복 수(repeat)가 다른 시점끼리는 축이 달라 직접 비교 금지 — 같은 방법론(반복 ${REPEAT}회)의 첫 측정이 공식 비교 기준선이다.
 
 ## 프롬프트별 결과
 

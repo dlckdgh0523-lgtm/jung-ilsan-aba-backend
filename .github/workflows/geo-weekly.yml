@@ -30,7 +30,7 @@ jobs:
       - name: Run measurement
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          GEO_MEASURE_REPEAT: '2' # 노이즈 완화 — 프롬프트당 2회, 과반 기준
+          GEO_MEASURE_REPEAT: '2' # 노이즈 완화 — 프롬프트당 2회, 1회 이상 나오면 카운트(rule=any). 값 변경 = 축 변경이므로 고정할 것
         run: |
           if [ -z "$ANTHROPIC_API_KEY" ]; then
             echo "::warning::ANTHROPIC_API_KEY 시크릿이 없어 이번 측정을 건너뜁니다. (Settings → Secrets → Actions에 등록)"
