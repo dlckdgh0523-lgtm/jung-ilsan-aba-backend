@@ -115,7 +115,8 @@ export class SeoService {
       ],
       bodyHtml: `<h1>소식·블로그</h1>
 <p class="meta">정지은일산ABA — 일산 ABA 행동발달센터의 소식과 전문 정보</p>
-<ul class="cards">${items || '<li>아직 등록된 게시글이 없습니다.</li>'}</ul>${pager}`,
+<ul class="cards">${items || '<li>아직 등록된 게시글이 없습니다.</li>'}</ul>${pager}
+<div class="cta-box"><strong>정지은일산ABA</strong> — 고양시 일산 지역 ABA 전문기관<br><a href="${base}/programs">치료 프로그램 보기</a> · <a href="${base}/contact">상담 안내 보기</a></div>`,
     });
   }
 
@@ -242,7 +243,7 @@ ${tagsHtml}
 ${faqHtml}
 ${programHtml}
 ${relatedHtml}
-<div class="cta-box"><strong>아이의 발달이 궁금하신가요?</strong><br>초기상담으로 편하게 문의해 주세요.<br><a href="${base}/#contact">상담 신청하기</a></div>`,
+<div class="cta-box"><strong>아이의 발달이 궁금하신가요?</strong><br>초기상담으로 편하게 문의해 주세요.<br><a href="${base}/contact">상담 안내 보기</a></div>`,
     });
   }
 
@@ -306,7 +307,7 @@ ${relatedHtml}
 <h1>${escapeHtml(tag.name)}</h1>
 ${tag.description ? `<p>${escapeHtml(tag.description)}</p>` : ''}
 <ul class="cards">${items || '<li>이 태그의 게시글이 아직 없습니다.</li>'}</ul>${pager}
-<div class="cta-box"><strong>정지은일산ABA</strong> — 고양시 일산 지역 ABA 행동발달센터<br><a href="${base}/#contact">상담 신청하기</a></div>`,
+<div class="cta-box"><strong>정지은일산ABA</strong> — 고양시 일산 지역 ABA 행동발달센터<br><a href="${base}/contact">상담 안내 보기</a></div>`,
     });
   }
   // ── 독립 정적 페이지 (해시 라우트의 SSR 대응: /about /programs /faq /contact) ──
