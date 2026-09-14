@@ -83,6 +83,37 @@ describe('LlmPostTransformer', () => {
     expect(out.summary).toContain('9월');
   });
 
+  it('category: picks a value from the provided site list and includes the list in the prompt', async () => {
+    const { t, llm } = makeTransformer({
+      raw: '{"title":"9월 특강 안내","summary":"요약입니다.","category":"부모교육"}',
+    });
+    const out = await t.transform(post, item('일산ABA 9월 특강'), {
+      categories: ['센터소식', '부모교육'],
+    });
+    expect(out.categoryName).toBe('부모교육');
+    expect(String(llm.completeJson.mock.calls[0][1])).toContain(
+      '사이트 카테고리 목록: 센터소식, 부모교육',
+    );
+  });
+
+  it('category: a value NOT in the site list is ignored (falls back to Naver category mapping)', async () => {
+    const { t } = makeTransformer({
+      raw: '{"title":"9월 특강 안내","summary":"요약입니다.","category":"없는카테고리"}',
+    });
+    const out = await t.transform(post, item('9월 특강'), { categories: ['센터소식'] });
+    expect(out.categoryName).toBeUndefined();
+    expect(out.cleanTitle).toBe('9월 특강 안내'); // title/summary still applied
+  });
+
+  it('category: no site list given → prompt omits the list and categoryName stays undefined', async () => {
+    const { t, llm } = makeTransformer({
+      raw: '{"title":"9월 특강 안내","summary":"요약입니다.","category":"센터소식"}',
+    });
+    const out = await t.transform(post, item('9월 특강'));
+    expect(out.categoryName).toBeUndefined();
+    expect(String(llm.completeJson.mock.calls[0][1])).not.toContain('사이트 카테고리 목록');
+  });
+
   it('LLM HTTP error → fallback', async () => {
     const { t } = makeTransformer({ raw: new Error('LLM API HTTP 529') });
     const out = await t.transform(post, item('운정ABA 프로그램'));

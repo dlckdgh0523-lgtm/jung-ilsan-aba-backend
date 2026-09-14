@@ -125,10 +125,22 @@ export class BlogSyncService {
     let notified = 0;
     let notifyFailed = 0;
 
+    // Site categories once per run — the LLM picks among these when enabled.
+    const siteCategories =
+      batch.length > 0
+        ? (
+            await this.prisma.articleCategory.findMany({
+              where: { deletedAt: null },
+              select: { name: true },
+              orderBy: { order: 'asc' },
+            })
+          ).map((c) => c.name)
+        : [];
+
     for (const item of batch) {
       let imported: { article: ArticleView; summary: string | null };
       try {
-        imported = await this.importOne(item);
+        imported = await this.importOne(item, siteCategories);
         created.push(imported.article);
       } catch (e) {
         const message = e instanceof Error ? e.message : String(e);
@@ -194,10 +206,14 @@ export class BlogSyncService {
 
   private async importOne(
     item: BlogRssItem,
+    siteCategories: string[],
   ): Promise<{ article: ArticleView; summary: string | null }> {
     const parsed = await this.fetcher.fetchPost(this.settings.blogId, item.logNo);
-    // LLM (when enabled) supplies a clean homepage title + summary; the body is untouched.
-    const transformed = await this.transformer.transform(parsed, item);
+    // LLM (when enabled) supplies a clean title + summary + a category pick
+    // from the site's existing ones; the body is untouched.
+    const transformed = await this.transformer.transform(parsed, item, {
+      categories: siteCategories,
+    });
     const { html: mirroredHtml, firstImageUrl } = await this.mirror.mirrorImages(
       transformed.bodyHtml,
     );
@@ -214,7 +230,8 @@ export class BlogSyncService {
       slug: await this.freeSlug({ ...item, title }),
       content,
       thumbnail: firstImageUrl,
-      categoryId: await this.resolveCategoryId(item.category),
+      // LLM's validated pick wins; otherwise map the Naver category name (stage-1 behaviour).
+      categoryId: await this.resolveCategoryId(transformed.categoryName ?? item.category),
       status: 'draft',
       visible: true,
       publishedAt: item.publishedAt,

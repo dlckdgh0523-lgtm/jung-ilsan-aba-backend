@@ -36,6 +36,11 @@ function makeService(overrides: Partial<Record<string, unknown>> = {}) {
     },
     articleCategory: {
       findFirst: jest.fn().mockResolvedValue(overrides.existingCategory ?? null),
+      findMany: jest
+        .fn()
+        .mockResolvedValue(
+          ((overrides.siteCategories as string[]) ?? []).map((name) => ({ name })),
+        ),
       create: jest.fn().mockResolvedValue({ id: 'cat-new' }),
     },
   };
@@ -254,6 +259,32 @@ describe('BlogSyncService.run (imports as draft articles)', () => {
     await service.run('manual');
     expect(articles.create).toHaveBeenCalledWith(
       expect.objectContaining({ title: '9월 부모교육 안내', sourceTitle: '글 100' }),
+    );
+  });
+
+  it('passes the site category list to the transformer and prefers its validated pick', async () => {
+    const transform = jest
+      .fn()
+      .mockImplementation((p: ParsedPost) => ({ ...p, categoryName: '센터소식' }));
+    const { service, prisma, articles } = makeService({
+      items: [item('100', '2026-08-05T00:00:00Z', '공지')],
+      siteCategories: ['센터소식', '부모교육'],
+      existingCategory: { id: 'cat-center' },
+      transformer: { transform },
+    });
+    await service.run('manual');
+    // Transformer got the site's categories …
+    expect(transform).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+      expect.objectContaining({ categories: ['센터소식', '부모교육'] }),
+    );
+    // … and its pick (센터소식), not the Naver name (공지), drove the lookup.
+    expect(prisma.articleCategory.findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({ where: expect.objectContaining({ name: '센터소식' }) }),
+    );
+    expect(articles.create).toHaveBeenCalledWith(
+      expect.objectContaining({ categoryId: 'cat-center' }),
     );
   });
 

@@ -1,7 +1,12 @@
 import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { AppConfig } from '../../config/configuration';
-import type { BlogRssItem, ParsedPost, PostTransformer } from '../blog-sync.types';
+import type {
+  BlogRssItem,
+  ParsedPost,
+  PostTransformer,
+  TransformContext,
+} from '../blog-sync.types';
 import { LLM_CLIENT, type LlmClient } from './llm-client.interface';
 
 const TITLE_MAX = 25;
@@ -58,8 +63,9 @@ export const LLM_SYSTEM_PROMPT = `당신은 아동 발달센터 홈페이지의 
 규칙:
 - title: 25자 이내. 지역명·센터명 검색 키워드 나열("일산ABA", "파주ABA", "주엽역 5번출구" 등)은 전부 제거. 이모지·특수문자 장식 제거. 공지 톤의 한국어 존댓말 명사형 종결("~안내", "~모집", "~소개").
 - summary: 80자 이내, 1~2문장. 글의 핵심만.
+- category: 입력에 "사이트 카테고리 목록"이 주어지면, 글 내용에 가장 알맞은 것 하나를 목록에서 골라 **그대로** 적으세요. 목록에 없는 값을 만들지 마세요. 목록이 없으면 category를 생략하세요.
 - 날짜·시간·전화번호·가격·인원·연령·기수 등 사실 정보는 원문에 있는 그대로만 사용하고, 원문에 없는 정보는 절대 만들지 마세요.
-- 출력은 JSON 하나만: {"title":"...","summary":"..."} (다른 텍스트 금지)
+- 출력은 JSON 하나만: {"title":"...","summary":"...","category":"..."} (다른 텍스트 금지)
 
 예시 1:
 원제목: "일산ABA, 파주ABA, 김포ABA 주엽역 5번출구 ✨ 9월 부모교육 특강 신청 안내 ✨"
@@ -88,10 +94,15 @@ export class LlmPostTransformer implements PostTransformer {
     this.enabled = config.get('llm', { infer: true }).enabled;
   }
 
-  async transform(post: ParsedPost, item: BlogRssItem): Promise<ParsedPost> {
+  async transform(
+    post: ParsedPost,
+    item: BlogRssItem,
+    context?: TransformContext,
+  ): Promise<ParsedPost> {
     if (!this.enabled || !this.llm) return post; // passthrough — stage-1 behaviour
 
     const bodyText = stripHtmlToText(post.bodyHtml).slice(0, BODY_INPUT_CHARS);
+    const siteCategories = (context?.categories ?? []).map((c) => c.trim()).filter(Boolean);
     const fallback = (): ParsedPost => ({
       ...post,
       cleanTitle: fallbackCleanTitle(item.title),
@@ -99,11 +110,22 @@ export class LlmPostTransformer implements PostTransformer {
     });
 
     try {
-      const user = `카테고리: ${item.category || '(없음)'}\n원제목: ${item.title}\n본문:\n${bodyText}`;
+      const user =
+        `네이버 카테고리: ${item.category || '(없음)'}\n` +
+        (siteCategories.length > 0 ? `사이트 카테고리 목록: ${siteCategories.join(', ')}\n` : '') +
+        `원제목: ${item.title}\n본문:\n${bodyText}`;
       const raw = await this.llm.completeJson(LLM_SYSTEM_PROMPT, user);
-      const parsed = JSON.parse(extractJson(raw)) as { title?: unknown; summary?: unknown };
+      const parsed = JSON.parse(extractJson(raw)) as {
+        title?: unknown;
+        summary?: unknown;
+        category?: unknown;
+      };
       const title = typeof parsed.title === 'string' ? parsed.title.trim() : '';
       const summary = typeof parsed.summary === 'string' ? parsed.summary.trim() : '';
+      // Category counts only when it's EXACTLY one of the site's categories —
+      // anything else (hallucinated, list not given) falls back to the Naver name.
+      const category = typeof parsed.category === 'string' ? parsed.category.trim() : '';
+      const categoryName = siteCategories.includes(category) ? category : undefined;
 
       if (!title || title.length > TITLE_MAX || summary.length > SUMMARY_MAX) return fallback();
       // Invented facts (numbers not present in the source) → discard the whole result.
@@ -112,7 +134,12 @@ export class LlmPostTransformer implements PostTransformer {
         this.logger.warn(`LLM 결과 폐기 (원문에 없는 숫자): logNo=${item.logNo}`);
         return fallback();
       }
-      return { ...post, cleanTitle: title, summary: summary || bodyText.slice(0, SUMMARY_MAX) };
+      return {
+        ...post,
+        cleanTitle: title,
+        summary: summary || bodyText.slice(0, SUMMARY_MAX),
+        categoryName,
+      };
     } catch (e) {
       this.logger.warn(`LLM 제목 생성 실패 → 폴백 (logNo=${item.logNo}): ${(e as Error).message}`);
       return fallback();

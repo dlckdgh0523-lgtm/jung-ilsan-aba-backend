@@ -36,6 +36,17 @@ export interface ParsedPost {
   cleanTitle?: string;
   /** LLM 1-2 sentence summary (≤80 chars) for the review alimtalk. */
   summary?: string;
+  /**
+   * LLM's pick among the site's EXISTING blog categories (validated against
+   * the provided list). Absent → the sync maps the Naver category name as before.
+   */
+  categoryName?: string;
+}
+
+/** Extra inputs a transformer may use (all optional — passthrough ignores it). */
+export interface TransformContext {
+  /** Names of the site's visible blog categories, for LLM categorisation. */
+  categories: string[];
 }
 
 /** DI token for the post transformer hook. */
@@ -46,5 +57,9 @@ export const POST_TRANSFORMER = Symbol('POST_TRANSFORMER');
  * v1 ships only the passthrough implementation — no LLM, no content changes.
  */
 export interface PostTransformer {
-  transform(post: ParsedPost, item: BlogRssItem): Promise<ParsedPost> | ParsedPost;
+  transform(
+    post: ParsedPost,
+    item: BlogRssItem,
+    context?: TransformContext,
+  ): Promise<ParsedPost> | ParsedPost;
 }
