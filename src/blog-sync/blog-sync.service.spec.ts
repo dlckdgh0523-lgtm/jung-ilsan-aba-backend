@@ -30,8 +30,13 @@ function makeService(overrides: Partial<Record<string, unknown>> = {}) {
       findMany: jest.fn().mockResolvedValue([]),
       deleteMany: jest.fn().mockResolvedValue({ count: 0 }),
     },
-    notice: {
-      findMany: jest.fn().mockResolvedValue(overrides.existingNotices ?? []),
+    article: {
+      findMany: jest.fn().mockResolvedValue(overrides.existingArticles ?? []),
+      findFirst: jest.fn().mockResolvedValue(overrides.slugTaken ?? null),
+    },
+    articleCategory: {
+      findFirst: jest.fn().mockResolvedValue(overrides.existingCategory ?? null),
+      create: jest.fn().mockResolvedValue({ id: 'cat-new' }),
     },
   };
   const rss = { fetchItems: jest.fn().mockResolvedValue(items) };
@@ -41,14 +46,14 @@ function makeService(overrides: Partial<Record<string, unknown>> = {}) {
       .fn()
       .mockResolvedValue({ html: '<p>본문</p>', firstImageUrl: null, mirrored: 0, failed: 0 }),
   };
-  const notices = {
+  const articles = {
     create: jest
       .fn()
       .mockImplementation((data: Record<string, unknown>) =>
-        Promise.resolve({ id: `n_${String(data.sourceId)}`, ...data }),
+        Promise.resolve({ id: `a_${String(data.sourceId)}`, tags: [], category: null, ...data }),
       ),
   };
-  const realtime = { emitNoticeSynced: jest.fn() };
+  const realtime = { emitBlogSynced: jest.fn() };
   const transformer = { transform: (p: ParsedPost) => p };
   const config = { get: jest.fn().mockReturnValue(settings) };
 
@@ -57,12 +62,12 @@ function makeService(overrides: Partial<Record<string, unknown>> = {}) {
     rss as never,
     fetcher as never,
     mirror as never,
-    notices as never,
+    articles as never,
     realtime as never,
     transformer as never,
     config as never,
   );
-  return { service, prisma, rss, fetcher, mirror, notices, realtime, settings };
+  return { service, prisma, rss, fetcher, mirror, articles, realtime, settings };
 }
 
 const item = (logNo: string, publishedAt: string, category = '공지'): BlogRssItem => ({
@@ -73,38 +78,72 @@ const item = (logNo: string, publishedAt: string, category = '공지'): BlogRssI
   publishedAt: new Date(publishedAt),
 });
 
-describe('BlogSyncService.run', () => {
-  it('imports new posts as hidden notices with source fields and KST date', async () => {
-    const { service, notices, realtime } = makeService({
+describe('BlogSyncService.run (imports as draft articles)', () => {
+  it('imports new posts as DRAFT articles with source fields and the blog publish date', async () => {
+    const { service, articles, realtime } = makeService({
       items: [item('100', '2026-08-05T06:55:58Z')],
     });
     const summary = await service.run('manual');
 
     expect(summary).toMatchObject({ status: 'ok', fetched: 1, created: 1, skipped: 0 });
-    expect(notices.create).toHaveBeenCalledWith(
+    expect(articles.create).toHaveBeenCalledWith(
       expect.objectContaining({
         title: '글 100',
-        visible: false,
-        pinned: false,
-        date: '2026.08.05',
+        status: 'draft',
+        visible: true,
+        slug: '글-100',
+        // Blog date pre-set so publishing keeps the real chronology.
+        publishedAt: new Date('2026-08-05T06:55:58Z'),
         sourceUrl: 'https://blog.naver.com/ilsanaba/100',
         sourceId: '100',
       }),
     );
-    const body = (notices.create.mock.calls[0][0] as { body: string }).body;
-    expect(body).toContain('네이버 블로그 원문 보기');
-    expect(body).toContain('https://blog.naver.com/ilsanaba/100');
-    expect(realtime.emitNoticeSynced).toHaveBeenCalledWith(expect.objectContaining({ created: 1 }));
+    const content = (articles.create.mock.calls[0][0] as { content: string }).content;
+    expect(content).toContain('네이버 블로그 원문 보기');
+    expect(content).toContain('https://blog.naver.com/ilsanaba/100');
+    expect(realtime.emitBlogSynced).toHaveBeenCalledWith(expect.objectContaining({ created: 1 }));
+  });
+
+  it('creates the article category from the Naver category on first sight', async () => {
+    const { service, prisma, articles } = makeService({
+      items: [item('100', '2026-08-05T00:00:00Z', '부모교육')],
+    });
+    await service.run('manual');
+    expect(prisma.articleCategory.create).toHaveBeenCalledWith({
+      data: { name: '부모교육', slug: '부모교육' },
+    });
+    expect(articles.create).toHaveBeenCalledWith(
+      expect.objectContaining({ categoryId: 'cat-new' }),
+    );
+  });
+
+  it('reuses an existing article category by name', async () => {
+    const { service, prisma, articles } = makeService({
+      items: [item('100', '2026-08-05T00:00:00Z', '공지')],
+      existingCategory: { id: 'cat-1' },
+    });
+    await service.run('manual');
+    expect(prisma.articleCategory.create).not.toHaveBeenCalled();
+    expect(articles.create).toHaveBeenCalledWith(expect.objectContaining({ categoryId: 'cat-1' }));
+  });
+
+  it('appends the logNo when the title slug is already taken', async () => {
+    const { service, articles } = makeService({
+      items: [item('100', '2026-08-05T00:00:00Z')],
+      slugTaken: { id: 'other' },
+    });
+    await service.run('manual');
+    expect(articles.create).toHaveBeenCalledWith(expect.objectContaining({ slug: '글-100-100' }));
   });
 
   it('skips posts published before the cutoff', async () => {
-    const { service, notices } = makeService({
+    const { service, articles } = makeService({
       items: [item('old', '2025-12-31T00:00:00Z'), item('new', '2026-06-01T00:00:00Z')],
     });
     const summary = await service.run('manual');
     expect(summary.created).toBe(1);
     expect(summary.skipped).toBe(1);
-    expect(notices.create).toHaveBeenCalledTimes(1);
+    expect(articles.create).toHaveBeenCalledTimes(1);
   });
 
   it('skips posts whose category is not allowlisted', async () => {
@@ -117,20 +156,20 @@ describe('BlogSyncService.run', () => {
   });
 
   it('never re-imports an already-known sourceUrl (soft-deleted included)', async () => {
-    const { service, prisma, notices } = makeService({
+    const { service, prisma, articles } = makeService({
       items: [item('100', '2026-06-01T00:00:00Z')],
-      existingNotices: [{ sourceUrl: 'https://blog.naver.com/ilsanaba/100' }],
+      existingArticles: [{ sourceUrl: 'https://blog.naver.com/ilsanaba/100' }],
     });
     const summary = await service.run('manual');
     expect(summary).toMatchObject({ created: 0, skipped: 1 });
-    expect(notices.create).not.toHaveBeenCalled();
-    // Dedupe query must not filter on deletedAt — deleted notices stay deleted.
-    const where = prisma.notice.findMany.mock.calls[0][0].where as Record<string, unknown>;
+    expect(articles.create).not.toHaveBeenCalled();
+    // Dedupe query must not filter on deletedAt — deleted articles stay deleted.
+    const where = prisma.article.findMany.mock.calls[0][0].where as Record<string, unknown>;
     expect(where).not.toHaveProperty('deletedAt');
   });
 
   it('caps a run at maxPerRun, oldest first, and reports the rest as deferred', async () => {
-    const { service, notices } = makeService({
+    const { service, articles } = makeService({
       settings: { maxPerRun: 2 },
       items: [
         item('3', '2026-06-03T00:00:00Z'),
@@ -140,7 +179,7 @@ describe('BlogSyncService.run', () => {
     });
     const summary = await service.run('manual');
     expect(summary).toMatchObject({ created: 2, deferred: 1 });
-    const created = notices.create.mock.calls.map((c) => (c[0] as { sourceId: string }).sourceId);
+    const created = articles.create.mock.calls.map((c) => (c[0] as { sourceId: string }).sourceId);
     expect(created).toEqual(['1', '2']);
   });
 
@@ -181,7 +220,7 @@ describe('BlogSyncService.run', () => {
   });
 
   it('uses the first run startedAt as cutoff when BLOG_SYNC_SINCE is empty', async () => {
-    const { service, prisma, notices } = makeService({
+    const { service, prisma, articles } = makeService({
       settings: { since: '' },
       items: [item('1', '2026-06-01T00:00:00Z')],
     });
@@ -189,6 +228,6 @@ describe('BlogSyncService.run', () => {
     prisma.blogSyncRun.findFirst.mockResolvedValue({ startedAt: new Date('2026-07-01T00:00:00Z') });
     const summary = await service.run('manual');
     expect(summary).toMatchObject({ created: 0, skipped: 1 });
-    expect(notices.create).not.toHaveBeenCalled();
+    expect(articles.create).not.toHaveBeenCalled();
   });
 });

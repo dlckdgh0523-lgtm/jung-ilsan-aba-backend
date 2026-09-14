@@ -1,13 +1,14 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { BlogSyncRun, Notice } from '@prisma/client';
+import { BlogSyncRun } from '@prisma/client';
 import { AppException } from '../common/exceptions/app.exception';
 import type { AppConfig } from '../config/configuration';
-import { NoticesService } from '../notices/notices.service';
+import { ArticlesService, type ArticleView } from '../articles/articles.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { RealtimeService } from '../realtime/realtime.service';
+import { slugify } from '../common/slug.util';
 import { POST_TRANSFORMER, type BlogRssItem, type PostTransformer } from './blog-sync.types';
-import { toKstDisplayDate, truncateHtmlBlocks } from './blog-sync.util';
+import { truncateHtmlBlocks } from './blog-sync.util';
 import { normalizeNoticeHtml } from './html-normalizer';
 import { ImageMirrorService } from './image-mirror.service';
 import { NaverPostFetcher } from './naver-post.fetcher';
@@ -41,7 +42,7 @@ export class BlogSyncService {
     private readonly rss: NaverRssClient,
     private readonly fetcher: NaverPostFetcher,
     private readonly mirror: ImageMirrorService,
-    private readonly notices: NoticesService,
+    private readonly articles: ArticlesService,
     private readonly realtime: RealtimeService,
     @Inject(POST_TRANSFORMER) private readonly transformer: PostTransformer,
     private readonly config: ConfigService<AppConfig, true>,
@@ -96,15 +97,15 @@ export class BlogSyncService {
     const items = await this.rss.fetchItems(this.settings.blogId);
 
     // Skip: before the cutoff, category not allowlisted, or already imported —
-    // including soft-deleted notices, so an admin's delete is never undone.
+    // including soft-deleted articles, so an admin's delete is never undone.
     const fresh = items.filter((i) => i.publishedAt >= cutoff);
     const allowed =
       categories.length > 0 ? fresh.filter((i) => categories.includes(i.category)) : fresh;
-    const existing = await this.prisma.notice.findMany({
+    const existing = await this.prisma.article.findMany({
       where: { sourceUrl: { in: allowed.map((i) => i.url) } },
       select: { sourceUrl: true },
     });
-    const known = new Set(existing.map((n) => n.sourceUrl));
+    const known = new Set(existing.map((a) => a.sourceUrl));
     const eligible = allowed
       .filter((i) => !known.has(i.url))
       .sort((a, b) => a.publishedAt.getTime() - b.publishedAt.getTime());
@@ -112,11 +113,11 @@ export class BlogSyncService {
     const batch = eligible.slice(0, maxPerRun);
     const skipped = items.length - eligible.length;
     const failures: string[] = [];
-    const createdNotices: Notice[] = [];
+    const created: ArticleView[] = [];
 
     for (const item of batch) {
       try {
-        createdNotices.push(await this.importOne(item));
+        created.push(await this.importOne(item));
       } catch (e) {
         const message = e instanceof Error ? e.message : String(e);
         this.logger.error(`글 가져오기 실패 (logNo=${item.logNo}): ${message}`);
@@ -130,35 +131,40 @@ export class BlogSyncService {
         status: 'ok',
         finishedAt: new Date(),
         fetched: items.length,
-        created: createdNotices.length,
+        created: created.length,
         skipped,
         error: failures.length > 0 ? failures.join('\n').slice(0, 2000) : null,
       },
     });
 
-    if (createdNotices.length > 0) {
-      this.realtime.emitNoticeSynced({
-        created: createdNotices.length,
-        notices: createdNotices.map((n) => ({ id: n.id, title: n.title, sourceUrl: n.sourceUrl })),
+    if (created.length > 0) {
+      this.realtime.emitBlogSynced({
+        created: created.length,
+        articles: created.map((a) => ({
+          id: a.id,
+          title: a.title,
+          slug: a.slug,
+          sourceUrl: a.sourceUrl,
+        })),
       });
     }
 
     this.logger.log(
-      `블로그 동기화 완료: ${createdNotices.length}건 생성, ${skipped}건 스킵, ${failures.length}건 실패`,
+      `블로그 동기화 완료: ${created.length}건 생성, ${skipped}건 스킵, ${failures.length}건 실패`,
     );
     return {
       runId,
       status: 'ok',
       fetched: items.length,
-      created: createdNotices.length,
+      created: created.length,
       skipped,
       deferred: eligible.length - batch.length,
       failures,
-      createdTitles: createdNotices.map((n) => n.title),
+      createdTitles: created.map((a) => a.title),
     };
   }
 
-  private async importOne(item: BlogRssItem): Promise<Notice> {
+  private async importOne(item: BlogRssItem): Promise<ArticleView> {
     const parsed = await this.fetcher.fetchPost(this.settings.blogId, item.logNo);
     const transformed = await this.transformer.transform(parsed, item);
     const { html: mirroredHtml, firstImageUrl } = await this.mirror.mirrorImages(
@@ -166,20 +172,47 @@ export class BlogSyncService {
     );
     const normalized = normalizeNoticeHtml(mirroredHtml);
     const { html: capped } = truncateHtmlBlocks(normalized, BODY_MAX_CHARS);
-    const body = `${capped}\n<p><a href="${item.url}" target="_blank" rel="noopener noreferrer">네이버 블로그 원문 보기</a></p>`;
+    const content = `${capped}\n<p><a href="${item.url}" target="_blank" rel="noopener noreferrer">네이버 블로그 원문 보기</a></p>`;
 
-    // Always visible=false: an admin reviews and publishes by hand — never auto-publish.
-    return this.notices.create({
+    // Always draft: an admin reviews (and may edit) then publishes — never auto-publish.
+    // publishedAt is pre-set to the blog date so the public list keeps the real
+    // chronology after publishing (ArticlesService keeps an existing publishedAt).
+    return this.articles.create({
       title: item.title,
-      body,
-      date: toKstDisplayDate(item.publishedAt),
-      image: firstImageUrl,
-      visible: false,
-      pinned: false,
+      slug: await this.freeSlug(item),
+      content,
+      thumbnail: firstImageUrl,
+      categoryId: await this.resolveCategoryId(item.category),
+      status: 'draft',
+      visible: true,
+      publishedAt: item.publishedAt,
       sourceUrl: item.url,
       sourceId: item.logNo,
       syncedAt: new Date(),
     });
+  }
+
+  /** Slug from the title; on collision, the logNo makes it unique. */
+  private async freeSlug(item: BlogRssItem): Promise<string> {
+    const base = slugify(item.title) || `blog-${item.logNo}`;
+    const taken = await this.prisma.article.findFirst({ where: { slug: base } });
+    return taken ? `${base}-${item.logNo}` : base;
+  }
+
+  /** Map the Naver category to an ArticleCategory by name, creating it on first sight. */
+  private async resolveCategoryId(name: string): Promise<string | null> {
+    const trimmed = name.trim();
+    if (!trimmed) return null;
+    const found = await this.prisma.articleCategory.findFirst({
+      where: { name: trimmed, deletedAt: null },
+    });
+    if (found) return found.id;
+    const slugBase = slugify(trimmed) || 'blog';
+    const slugTaken = await this.prisma.articleCategory.findFirst({ where: { slug: slugBase } });
+    const created = await this.prisma.articleCategory.create({
+      data: { name: trimmed, slug: slugTaken ? `${slugBase}-${Date.now()}` : slugBase },
+    });
+    return created.id;
   }
 
   /**

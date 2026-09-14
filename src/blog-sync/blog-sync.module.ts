@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ScheduleModule } from '@nestjs/schedule';
-import { NoticesModule } from '../notices/notices.module';
+import { ArticlesModule } from '../articles/articles.module';
 import { RealtimeModule } from '../realtime/realtime.module';
 import { UploadsModule } from '../uploads/uploads.module';
 import { BlogSyncController } from './blog-sync.controller';
@@ -13,7 +13,7 @@ import { NaverRssClient } from './naver-rss.client';
 import { PassthroughPostTransformer } from './post-transformer';
 
 @Module({
-  imports: [ScheduleModule.forRoot(), NoticesModule, UploadsModule, RealtimeModule],
+  imports: [ScheduleModule.forRoot(), ArticlesModule, UploadsModule, RealtimeModule],
   controllers: [BlogSyncController],
   providers: [
     BlogSyncService,

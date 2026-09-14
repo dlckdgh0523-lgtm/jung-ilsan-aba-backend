@@ -323,6 +323,12 @@ model Article {
   // Publishing
   status             String           @default("draft") // draft | published
   publishedAt        DateTime?        @map("published_at")
+  // Naver blog sync provenance — set only on articles imported from the blog.
+  // sourceUrl doubles as the dedupe key: an article (even soft-deleted) with
+  // the same sourceUrl is never re-imported.
+  sourceUrl          String?          @unique @map("source_url")
+  sourceId           String?          @map("source_id") // Naver logNo
+  syncedAt           DateTime?        @map("synced_at")
   views              Int              @default(0)
   order              Int              @default(0)
   visible            Boolean          @default(true)
