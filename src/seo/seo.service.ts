@@ -326,6 +326,43 @@ ${tag.description ? `<p>${escapeHtml(tag.description)}</p>` : ''}
     return Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string' && !!x) : [];
   }
 
+  /** 자격 목록 — 관리자 저장 형식은 {code, desc} 객체 배열(과거 문자열도 허용). */
+  private certList(v: unknown): { code: string; desc?: string }[] {
+    if (!Array.isArray(v)) return [];
+    return v
+      .map((x) => {
+        if (typeof x === 'string' && x) return { code: x };
+        if (x && typeof x === 'object') {
+          const o = x as { code?: unknown; name?: unknown; desc?: unknown };
+          const code =
+            typeof o.code === 'string' ? o.code : typeof o.name === 'string' ? o.name : '';
+          if (code) return { code, desc: typeof o.desc === 'string' ? o.desc : undefined };
+        }
+        return null;
+      })
+      .filter((x): x is { code: string; desc?: string } => !!x);
+  }
+
+  /** 경력 목록 — {period: 현|전, text, kind?: 'lecture'} 객체 배열(과거 문자열도 허용). */
+  private careerList(v: unknown): { period?: string; text: string; kind?: string }[] {
+    if (!Array.isArray(v)) return [];
+    return v
+      .map((x) => {
+        if (typeof x === 'string' && x) return { text: x };
+        if (x && typeof x === 'object') {
+          const o = x as { period?: unknown; text?: unknown; kind?: unknown };
+          if (typeof o.text === 'string' && o.text)
+            return {
+              text: o.text,
+              period: typeof o.period === 'string' ? o.period : undefined,
+              kind: typeof o.kind === 'string' ? o.kind : undefined,
+            };
+        }
+        return null;
+      })
+      .filter((x): x is { period?: string; text: string; kind?: string } => !!x);
+  }
+
   /** 정적 페이지 공통 breadcrumb — 화면의 "홈 · …" 라인과 1:1 대응. */
   private breadcrumbLd(name: string, path: string): object {
     const base = this.frontBase;
@@ -352,9 +389,11 @@ ${tag.description ? `<p>${escapeHtml(tag.description)}</p>` : ''}
       en?: string;
       desc?: string;
     }[];
-    const certs = this.strList(director?.certifications);
+    const certs = this.certList(director?.certifications);
     const education = this.strList(director?.education);
-    const career = this.strList(director?.career);
+    const allCareer = this.careerList(director?.career);
+    const career = allCareer.filter((c) => c.kind !== 'lecture');
+    const lectures = allCareer.filter((c) => c.kind === 'lecture');
     const organizations = this.strList(director?.organizations);
     const awards = this.strList(director?.awards);
     const training = this.strList(director?.training);
@@ -380,7 +419,7 @@ ${tag.description ? `<p>${escapeHtml(tag.description)}</p>` : ''}
     if (certs.length) {
       personLd.hasCredential = certs.map((c) => ({
         '@type': 'EducationalOccupationalCredential',
-        name: c,
+        name: c.desc ? `${c.code} (${c.desc})` : c.code,
       }));
     }
 
@@ -417,12 +456,13 @@ ${about?.title ? `<h2>${escapeHtml(about.title)}</h2>` : ''}
 ${body.map((t) => `<p>${escapeHtml(t)}</p>`).join('\n')}
 ${values.length ? `<h2>센터가 지키는 가치</h2><ul>${values.map((v) => `<li><strong>${escapeHtml(v.ko || '')}${v.en ? ` (${escapeHtml(v.en)})` : ''}</strong> — ${escapeHtml(v.desc || '')}</li>`).join('')}</ul>` : ''}
 <h2>센터장 — ${escapeHtml(dName)} ${escapeHtml(director?.sub || '')}</h2>
+${certs.length ? `<h3>자격 및 인증</h3><ul>${certs.map((c) => `<li><strong>${escapeHtml(c.code)}</strong>${c.desc ? ` — ${escapeHtml(c.desc)}` : ''}</li>`).join('')}</ul>` : ''}
 ${education.length ? `<h3>학력</h3><ul>${education.map((e) => `<li>${escapeHtml(e)}</li>`).join('')}</ul>` : ''}
-${certs.length ? `<h3>전문자격</h3><ul>${certs.map((c) => `<li>${escapeHtml(c)}</li>`).join('')}</ul>` : ''}
-${career.length ? `<h3>주요 경력</h3><ul>${career.map((c) => `<li>${escapeHtml(c)}</li>`).join('')}</ul>` : ''}
+${career.length ? `<h3>근무 경력</h3><ul>${career.map((c) => `<li>${c.period ? `[${escapeHtml(c.period)}] ` : ''}${escapeHtml(c.text)}</li>`).join('')}</ul>` : ''}
+${lectures.length ? `<h3>강의 경력</h3><ul>${lectures.map((c) => `<li>${c.period ? `[${escapeHtml(c.period)}] ` : ''}${escapeHtml(c.text)}</li>`).join('')}</ul>` : ''}
 ${organizations.length ? `<h3>학회·협회 활동</h3><ul>${organizations.map((o) => `<li>${escapeHtml(o)}</li>`).join('')}</ul>` : ''}
 ${awards.length ? `<h3>수상</h3><ul>${awards.map((a) => `<li>${escapeHtml(a)}</li>`).join('')}</ul>` : ''}
-${training.length ? `<h3>연수·교육</h3><ul>${training.map((t) => `<li>${escapeHtml(t)}</li>`).join('')}</ul>` : ''}
+${training.length ? `<h3>추가 수련 및 자격증</h3><ul>${training.map((t) => `<li>${escapeHtml(t)}</li>`).join('')}</ul>` : ''}
 ${
   validPapers.length
     ? `<h2>연구·논문</h2>
@@ -586,7 +626,7 @@ ${faqs.map((f) => `<h2>Q. ${escapeHtml(f.question)}</h2><p>${escapeHtml(f.answer
       }),
       this.prisma.director.findUnique({ where: { id: 'singleton' } }),
     ]);
-    const dCerts = this.strList(director?.certifications);
+    const dCerts = this.certList(director?.certifications).map((c) => c.code);
 
     const cards = therapists
       .map((t) => {
