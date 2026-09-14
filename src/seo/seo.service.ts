@@ -51,6 +51,7 @@ export class SeoService {
       { loc: `${base}/faq`, priority: '0.8' },
       { loc: `${base}/contact`, priority: '0.8' },
       { loc: `${base}/blog`, priority: '0.8' },
+      { loc: `${base}/notices`, priority: '0.6' },
     ];
     const [articles, tags] = await Promise.all([
       this.prisma.article.findMany({
@@ -81,6 +82,52 @@ export class SeoService {
       )
       .join('\n');
     return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${body}\n</urlset>\n`;
+  }
+
+  // ── rss.xml (네이버 서치어드바이저 RSS 제출용 — 공개 게시글 최신 50건) ──────
+  async rssXml(): Promise<string> {
+    const base = this.frontBase;
+    const list = await this.prisma.article.findMany({
+      where: PUBLISHED_WHERE,
+      orderBy: { publishedAt: 'desc' },
+      take: 50,
+      select: {
+        slug: true,
+        title: true,
+        excerpt: true,
+        content: true,
+        publishedAt: true,
+        createdAt: true,
+      },
+    });
+    const cdata = (s: string) => `<![CDATA[${String(s || '').replace(/\]\]>/g, ']]&gt;')}]]>`;
+    const absolutize = (html: string) =>
+      html.replace(/(src=")(\/[^"]+)/g, (_m, p, u: string) => p + (this.absoluteImage(u) ?? u));
+    const items = list
+      .map((a) => {
+        const link = `${base}/blog/${encodeURIComponent(a.slug)}`;
+        const pub = new Date(a.publishedAt || a.createdAt).toUTCString();
+        return `  <item>
+    <title>${cdata(a.title)}</title>
+    <link>${escapeXml(link)}</link>
+    <guid isPermaLink="true">${escapeXml(link)}</guid>
+    <pubDate>${pub}</pubDate>
+    <description>${cdata(a.excerpt || '')}</description>
+    <content:encoded>${cdata(absolutize(sanitizeRichHtml(a.content || '')))}</content:encoded>
+  </item>`;
+      })
+      .join('\n');
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+<channel>
+  <title>정지은일산ABA 소식·블로그</title>
+  <link>${escapeXml(`${base}/blog`)}</link>
+  <description>정지은일산ABA — 고양시 일산 ABA 전문기관의 센터 소식과 응용행동분석 전문 정보</description>
+  <language>ko</language>
+${items}
+</channel>
+</rss>
+`;
   }
 
   // ── /blog (index) ──────────────────────────────────────────────────────────
@@ -120,6 +167,7 @@ export class SeoService {
       bodyHtml: `<h1>소식·블로그</h1>
 <p class="meta">정지은일산ABA — 일산 ABA 행동발달센터의 소식과 전문 정보</p>
 <ul class="cards">${items || '<li>아직 등록된 게시글이 없습니다.</li>'}</ul>${pager}
+<p>센터 운영 안내는 <a href="${base}/notices">공지사항</a>에서 확인하세요.</p>
 <div class="cta-box"><strong>정지은일산ABA</strong> — 고양시 일산 지역 ABA 전문기관<br><a href="${base}/programs">치료 프로그램 보기</a> · <a href="${base}/contact">상담 안내 보기</a></div>`,
     });
   }
@@ -617,6 +665,48 @@ ${faqs.map((f) => `<h2>Q. ${escapeHtml(f.question)}</h2><p>${escapeHtml(f.answer
 <div class="cta-box"><strong>정지은일산ABA</strong> — ${escapeHtml(address)}<br>전화 ${escapeHtml(phone)} · ${escapeHtml(hours)}</div>`,
     });
   }
+  async noticesHtml(): Promise<string> {
+    const base = this.frontBase;
+    const notices = await this.prisma.notice.findMany({
+      where: { deletedAt: null, visible: true },
+      orderBy: [{ pinned: 'desc' }, { order: 'asc' }, { createdAt: 'desc' }],
+      take: 100,
+    });
+    const items = notices
+      .map(
+        (n) => `<article>
+<h2>${n.pinned ? '📌 ' : ''}${escapeHtml(n.title)}</h2>
+${n.date ? `<p class="meta">${escapeHtml(n.date)}</p>` : ''}
+${n.image ? `<p><img src="${escapeHtml(this.absoluteImage(n.image) ?? '')}" alt="${escapeHtml(n.title)}"></p>` : ''}
+${n.body ? `<div>${sanitizeRichHtml(n.body)}</div>` : ''}
+</article>`,
+      )
+      .join('\n');
+
+    return seoPageShell({
+      title: '공지사항 | 정지은일산ABA',
+      description:
+        '정지은일산ABA의 공지사항 — 센터 운영 안내, 프로그램 모집, 일정 변경 등 보호자님께 드리는 안내를 확인하세요.',
+      canonical: `${base}/notices`,
+      frontBase: base,
+      jsonLd: [
+        {
+          '@context': 'https://schema.org',
+          '@type': 'CollectionPage',
+          name: '공지사항 | 정지은일산ABA',
+          url: `${base}/notices`,
+          about: { '@id': ORG_ID },
+        },
+        this.breadcrumbLd('공지사항', '/notices'),
+      ],
+      bodyHtml: `<h1>공지사항</h1>
+<p class="meta"><a href="${base}/">홈</a> · 센터 운영과 프로그램 안내</p>
+${items || '<p>등록된 공지사항이 없습니다.</p>'}
+<p>센터 소식과 전문 정보는 <a href="${base}/blog">소식·블로그</a>에서, 상담 문의는 <a href="${base}/contact">상담 안내</a>에서 확인하세요.</p>
+<div class="cta-box"><strong>정지은일산ABA</strong> — 고양시 일산 지역 ABA 전문기관<br><a href="${base}/contact">상담 안내 보기</a></div>`,
+    });
+  }
+
   async teamHtml(): Promise<string> {
     const base = this.frontBase;
     const [therapists, director] = await Promise.all([

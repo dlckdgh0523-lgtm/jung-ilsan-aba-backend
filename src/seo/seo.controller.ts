@@ -49,6 +49,19 @@ export class SeoController {
     return 'User-agent: *\nDisallow: /\n';
   }
 
+  /** 네이버 서치어드바이저 RSS 제출용 — Vercel이 /rss.xml → /v1/rss.xml로 프록시. */
+  @Get('rss.xml')
+  @Header('Content-Type', 'application/rss+xml; charset=utf-8')
+  @Header('Cache-Control', 'public, max-age=3600')
+  rss(): Promise<string> {
+    return this.service.rssXml();
+  }
+
+  @Get('seo/notices')
+  async notices(@Res() res: Response): Promise<void> {
+    res.type('html').send(await this.service.noticesHtml());
+  }
+
   @Get('seo/about')
   async about(@Res() res: Response): Promise<void> {
     res.type('html').send(await this.service.aboutHtml());
