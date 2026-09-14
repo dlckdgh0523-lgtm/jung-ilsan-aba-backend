@@ -341,9 +341,10 @@ ${tag.description ? `<p>${escapeHtml(tag.description)}</p>` : ''}
 
   async aboutHtml(): Promise<string> {
     const base = this.frontBase;
-    const [about, director] = await Promise.all([
+    const [about, director, brand] = await Promise.all([
       this.prisma.about.findUnique({ where: { id: 'singleton' } }),
       this.prisma.director.findUnique({ where: { id: 'singleton' } }),
+      this.brand(),
     ]);
     const body = this.strList(about?.body);
     const values = (Array.isArray(about?.values) ? about?.values : []) as {
@@ -354,6 +355,34 @@ ${tag.description ? `<p>${escapeHtml(tag.description)}</p>` : ''}
     const certs = this.strList(director?.certifications);
     const education = this.strList(director?.education);
     const career = this.strList(director?.career);
+    const organizations = this.strList(director?.organizations);
+    const awards = this.strList(director?.awards);
+    const training = this.strList(director?.training);
+    const papers = (Array.isArray(director?.papers) ? director?.papers : []) as {
+      year?: string;
+      title?: string;
+    }[];
+    const validPapers = papers.filter((p) => p && p.title);
+    const dName = String(director?.name || '정지은');
+    const address = String(brand.address || '경기도 고양시 일산서구 주엽로 150 자유프라자 606호');
+    const phone = String(brand.phone || '031-977-2575');
+    const hours = String(brand.hours || '평일 09:00 — 21:00');
+
+    // 화면에 렌더되는 내용만 반영한 Person 노드 — 홈의 #director 그래프와 같은 @id로 연결.
+    const personLd: Record<string, unknown> = {
+      '@context': 'https://schema.org',
+      '@type': 'Person',
+      '@id': 'https://www.chungaba.com/#director',
+      name: dName,
+      jobTitle: '센터장',
+      worksFor: { '@id': ORG_ID },
+    };
+    if (certs.length) {
+      personLd.hasCredential = certs.map((c) => ({
+        '@type': 'EducationalOccupationalCredential',
+        name: c,
+      }));
+    }
 
     return seoPageShell({
       title: '센터 소개 | 정지은일산ABA',
@@ -369,19 +398,39 @@ ${tag.description ? `<p>${escapeHtml(tag.description)}</p>` : ''}
           url: `${base}/about`,
           mainEntity: { '@id': ORG_ID },
         },
+        personLd,
         this.breadcrumbLd('센터 소개', '/about'),
       ],
       bodyHtml: `<h1>센터 소개</h1>
 <p class="meta"><a href="${base}/">홈</a> · 정지은일산ABA — 고양시 일산서구 주엽동 ABA 전문기관</p>
 <article>
+<p>정지은일산ABA는 고양시 일산서구 주엽동에 자리한 응용행동분석(ABA) 전문기관으로, 자폐스펙트럼장애·발달지연 등 발달과 행동 영역의 지원이 필요한 아동에게 평가에 근거한 개별화 중재를 제공합니다. 박사 센터장이 아동별 중재계획과 치료사 슈퍼비전을 직접 총괄합니다.</p>
+<h2>기관 개요</h2>
+<ul>
+<li>기관명: 정지은일산ABA</li>
+<li>센터장: ${escapeHtml(dName)}</li>
+<li>위치: ${escapeHtml(address)}</li>
+<li>전화: ${escapeHtml(phone)} · 운영시간: ${escapeHtml(hours)}</li>
+<li>주요 이용 지역: 일산·고양을 중심으로 파주·운정·김포에서도 방문</li>
+</ul>
 ${about?.title ? `<h2>${escapeHtml(about.title)}</h2>` : ''}
 ${body.map((t) => `<p>${escapeHtml(t)}</p>`).join('\n')}
 ${values.length ? `<h2>센터가 지키는 가치</h2><ul>${values.map((v) => `<li><strong>${escapeHtml(v.ko || '')}${v.en ? ` (${escapeHtml(v.en)})` : ''}</strong> — ${escapeHtml(v.desc || '')}</li>`).join('')}</ul>` : ''}
-<h2>센터장 — ${escapeHtml(director?.name || '정지은')} ${escapeHtml(director?.sub || '')}</h2>
+<h2>센터장 — ${escapeHtml(dName)} ${escapeHtml(director?.sub || '')}</h2>
 ${education.length ? `<h3>학력</h3><ul>${education.map((e) => `<li>${escapeHtml(e)}</li>`).join('')}</ul>` : ''}
 ${certs.length ? `<h3>전문자격</h3><ul>${certs.map((c) => `<li>${escapeHtml(c)}</li>`).join('')}</ul>` : ''}
 ${career.length ? `<h3>주요 경력</h3><ul>${career.map((c) => `<li>${escapeHtml(c)}</li>`).join('')}</ul>` : ''}
-<p>센터장의 학술 연구는 <a href="${base}/#papers">센터장 논문</a>에서, 치료진 구성은 <a href="${base}/team">치료사 소개</a>에서, 프로그램 안내는 <a href="${base}/programs">치료 프로그램</a>에서 볼 수 있습니다.</p>
+${organizations.length ? `<h3>학회·협회 활동</h3><ul>${organizations.map((o) => `<li>${escapeHtml(o)}</li>`).join('')}</ul>` : ''}
+${awards.length ? `<h3>수상</h3><ul>${awards.map((a) => `<li>${escapeHtml(a)}</li>`).join('')}</ul>` : ''}
+${training.length ? `<h3>연수·교육</h3><ul>${training.map((t) => `<li>${escapeHtml(t)}</li>`).join('')}</ul>` : ''}
+${
+  validPapers.length
+    ? `<h2>연구·논문</h2>
+<p>센터장 ${escapeHtml(dName)} 박사가 발표한 학위논문과 학술지 논문입니다. 초록 전문은 <a href="${base}/#papers">센터장 논문</a>에서 볼 수 있습니다.</p>
+<ul>${validPapers.map((p) => `<li>${p.year ? `(${escapeHtml(p.year)}) ` : ''}${escapeHtml(p.title || '')}</li>`).join('')}</ul>`
+    : ''
+}
+<p>치료진 구성은 <a href="${base}/team">치료사 소개</a>에서, 프로그램 안내는 <a href="${base}/programs">치료 프로그램</a>에서, 자주 묻는 내용은 <a href="${base}/faq">FAQ</a>에서 볼 수 있습니다.</p>
 </article>
 <div class="cta-box"><strong>정지은일산ABA</strong> — 고양시 일산 지역 ABA 전문기관<br><a href="${base}/contact">상담 안내 보기</a></div>`,
     });
