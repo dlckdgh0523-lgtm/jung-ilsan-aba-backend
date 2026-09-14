@@ -4,6 +4,7 @@ import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '../prisma/prisma.service';
 import { AppException } from '../common/exceptions/app.exception';
 import { LoginDto } from './dto/login.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import type { JwtPayload } from './interfaces/jwt-payload.interface';
 import type { AuthUser } from './interfaces/auth-user.interface';
 
@@ -43,6 +44,44 @@ export class AuthService {
       throw AppException.unauthorized('세션이 만료되었습니다. 다시 로그인해 주세요.');
     }
     return this.toAuthUser(user);
+  }
+
+  /**
+   * Verifies the current password, applies the new one, and revokes every
+   * previously issued token (tokenVersion bump). Returns a fresh token signed
+   * against the new version so the caller's own session survives.
+   */
+  async changePassword(userId: string, dto: ChangePasswordDto): Promise<{ token: string }> {
+    const user = await this.prisma.adminUser.findUnique({ where: { id: userId } });
+    if (!user || !(await bcrypt.compare(dto.currentPassword, user.passwordHash))) {
+      throw AppException.unauthorized('현재 비밀번호가 올바르지 않습니다.', 'INVALID_CREDENTIALS');
+    }
+    // Mirrors the DTO rules — the service is also called with DTO-bypassing input in tests.
+    if (
+      dto.newPassword.length < 10 ||
+      !/[A-Za-z]/.test(dto.newPassword) ||
+      !/[0-9]/.test(dto.newPassword)
+    ) {
+      throw AppException.unprocessable(
+        '새 비밀번호는 10자 이상, 영문과 숫자를 모두 포함해야 합니다.',
+        'WEAK_PASSWORD',
+        { newPassword: '10자 이상, 영문과 숫자를 모두 포함해 주세요.' },
+      );
+    }
+    if (dto.newPassword === dto.currentPassword) {
+      throw AppException.unprocessable(
+        '새 비밀번호가 현재 비밀번호와 같습니다.',
+        'PASSWORD_UNCHANGED',
+        { newPassword: '현재 비밀번호와 다른 비밀번호를 사용해 주세요.' },
+      );
+    }
+
+    const passwordHash = await bcrypt.hash(dto.newPassword, 10);
+    const updated = await this.prisma.adminUser.update({
+      where: { id: userId },
+      data: { passwordHash, tokenVersion: { increment: 1 } },
+    });
+    return { token: await this.signToken(updated) };
   }
 
   /** Bumps tokenVersion, invalidating every token previously issued to this user. */

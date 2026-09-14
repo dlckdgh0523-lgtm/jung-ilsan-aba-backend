@@ -617,7 +617,16 @@ const privacyConsent = `# 개인정보 수집·이용 동의서\n\n정지은 일
 async function main(): Promise<void> {
   // Admin user (create if absent; never overwrite a changed password)
   const username = process.env.ADMIN_DEFAULT_USERNAME ?? 'admin';
-  const password = process.env.ADMIN_DEFAULT_PASSWORD ?? 'aba1234';
+  const password = process.env.ADMIN_DEFAULT_PASSWORD ?? '';
+  // Hard stop instead of a fallback: a seeded account with a guessable default
+  // password is worse than no seed at all. (Boot only runs db:seed:content,
+  // so this never takes the production server down.)
+  if (password.length < 10) {
+    throw new Error(
+      'ADMIN_DEFAULT_PASSWORD가 없거나 10자 미만입니다. ' +
+        '.env에 10자 이상(영문+숫자)의 값을 설정한 뒤 다시 실행하세요.',
+    );
+  }
   const passwordHash = await bcrypt.hash(password, 10);
   await prisma.adminUser.upsert({
     where: { username },

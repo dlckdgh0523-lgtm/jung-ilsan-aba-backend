@@ -66,7 +66,29 @@
   ```
 - 토스트 클릭 시 공지 관리(비공개 필터) 화면으로 이동 권장.
 
-## 5. (선택) 파서 미리보기 디버그 화면
+## 5. 관리자 "비밀번호 변경" 폼 (2026-09 추가, 블로그 동기화와 무관하지만 같은 관리자페이지 작업)
+
+- 입력 3개: **현재 비밀번호 / 새 비밀번호 / 새 비밀번호 확인** (확인 불일치는 프론트에서 차단)
+- 새 비밀번호 규칙(프론트에서도 미리 안내): **10자 이상, 영문+숫자 포함**
+- 호출:
+  ```
+  PATCH /v1/auth/password        (Authorization: Bearer <토큰>, 분당 5회 제한)
+  Body: { "currentPassword": "...", "newPassword": "..." }
+  ```
+- 응답 처리:
+  - **200 `{ token }`** → 다른 기기 세션은 전부 로그아웃됨. **반환된 토큰으로
+    `sessionStorage`의 `aba-token`을 교체**해야 현재 브라우저의 로그인이 유지된다.
+    ```js
+    const { token } = await res.json();
+    sessionStorage.setItem('aba-token', token);
+    toast('비밀번호를 변경했습니다. 다른 기기에서는 다시 로그인해야 합니다.');
+    ```
+  - 401 `INVALID_CREDENTIALS` → "현재 비밀번호가 올바르지 않습니다."
+  - 422 `WEAK_PASSWORD` → 규칙 안내 표시
+  - 422 `PASSWORD_UNCHANGED` → "현재 비밀번호와 다른 비밀번호를 사용해 주세요."
+  - 429 → "잠시 후 다시 시도해 주세요." (분당 5회 제한)
+
+## 6. (선택) 파서 미리보기 디버그 화면
 
 - `POST /v1/blog-sync/preview` `{ "url": "https://blog.naver.com/ilsanaba/…" }`
   → `{ title, body, images: string[], dropped: string[] }`

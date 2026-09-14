@@ -31,6 +31,14 @@ class EnvVars {
   @IsInt()
   JWT_TTL_SECONDS?: number;
 
+  // Only the seed consumes this, so boot must not die when it's absent —
+  // but when it IS set, a weak value is refused early.
+  @ValidateIf(
+    (o: EnvVars) => o.ADMIN_DEFAULT_PASSWORD !== undefined && o.ADMIN_DEFAULT_PASSWORD !== '',
+  )
+  @MinLength(10, { message: 'ADMIN_DEFAULT_PASSWORD must be at least 10 characters' })
+  ADMIN_DEFAULT_PASSWORD?: string;
+
   // Optional vars use ValidateIf(non-empty) instead of @IsOptional: dotenv turns a
   // bare `VAR=` line into '' (not undefined), which @IsOptional would still validate.
   @ValidateIf((o: EnvVars) => o.BLOG_SYNC_ENABLED !== undefined && o.BLOG_SYNC_ENABLED !== '')

@@ -95,4 +95,94 @@ describe('AuthService', () => {
       data: { tokenVersion: { increment: 1 } },
     });
   });
+
+  describe('changePassword', () => {
+    const NEW_PW = 'brandnewpw12';
+
+    async function withUser(currentPw: string) {
+      const passwordHash = await bcrypt.hash(currentPw, 8);
+      prisma.adminUser.findUnique.mockResolvedValue({
+        id: 'a1',
+        username: 'admin',
+        role: 'admin',
+        tokenVersion: 3,
+        passwordHash,
+      });
+    }
+
+    it('updates the hash, bumps tokenVersion, and returns a fresh token', async () => {
+      await withUser('oldpassword1');
+      prisma.adminUser.update.mockResolvedValue({
+        id: 'a1',
+        username: 'admin',
+        role: 'admin',
+        tokenVersion: 4,
+        passwordHash: 'new-hash',
+      });
+
+      const r = await service.changePassword('a1', {
+        currentPassword: 'oldpassword1',
+        newPassword: NEW_PW,
+      });
+
+      expect(r).toEqual({ token: 'signed.jwt' });
+      const call = prisma.adminUser.update.mock.calls[0][0] as {
+        where: unknown;
+        data: { passwordHash: string; tokenVersion: unknown };
+      };
+      expect(call.where).toEqual({ id: 'a1' });
+      expect(call.data.tokenVersion).toEqual({ increment: 1 });
+      // Stored value is a bcrypt hash of the new password, never plaintext.
+      expect(call.data.passwordHash).not.toBe(NEW_PW);
+      await expect(bcrypt.compare(NEW_PW, call.data.passwordHash)).resolves.toBe(true);
+      // The fresh token is signed against the post-bump version (caller stays logged in).
+      expect(jwt.signAsync).toHaveBeenCalledWith(expect.objectContaining({ ver: 4 }));
+    });
+
+    it('throws 401 INVALID_CREDENTIALS when the current password is wrong', async () => {
+      await withUser('oldpassword1');
+      try {
+        await service.changePassword('a1', { currentPassword: 'WRONG', newPassword: NEW_PW });
+        throw new Error('should have thrown');
+      } catch (e) {
+        expect(e).toBeInstanceOf(AppException);
+        expect((e as AppException).getStatus()).toBe(401);
+        expect((e as AppException).getResponse()).toMatchObject({ code: 'INVALID_CREDENTIALS' });
+      }
+      expect(prisma.adminUser.update).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ['too short', 'short1'],
+      ['letters only', 'onlyletterspw'],
+      ['digits only', '123456789012'],
+    ])('throws 422 WEAK_PASSWORD when the new password is %s', async (_label, weak) => {
+      await withUser('oldpassword1');
+      try {
+        await service.changePassword('a1', { currentPassword: 'oldpassword1', newPassword: weak });
+        throw new Error('should have thrown');
+      } catch (e) {
+        expect(e).toBeInstanceOf(AppException);
+        expect((e as AppException).getStatus()).toBe(422);
+        expect((e as AppException).getResponse()).toMatchObject({ code: 'WEAK_PASSWORD' });
+      }
+      expect(prisma.adminUser.update).not.toHaveBeenCalled();
+    });
+
+    it('throws 422 PASSWORD_UNCHANGED when the new password equals the current one', async () => {
+      await withUser('oldpassword1');
+      try {
+        await service.changePassword('a1', {
+          currentPassword: 'oldpassword1',
+          newPassword: 'oldpassword1',
+        });
+        throw new Error('should have thrown');
+      } catch (e) {
+        expect(e).toBeInstanceOf(AppException);
+        expect((e as AppException).getStatus()).toBe(422);
+        expect((e as AppException).getResponse()).toMatchObject({ code: 'PASSWORD_UNCHANGED' });
+      }
+      expect(prisma.adminUser.update).not.toHaveBeenCalled();
+    });
+  });
 });

@@ -1,5 +1,8 @@
-// Live E2E smoke test against a running backend (Task #11). Run: node smoke.mjs
+// Live E2E smoke test against a running backend (Task #11).
+// Run: ADMIN_DEFAULT_USERNAME=... ADMIN_DEFAULT_PASSWORD=... node smoke.mjs
 const BASE = 'http://localhost:4000/v1';
+const ADMIN_USER = process.env.ADMIN_DEFAULT_USERNAME ?? 'admin';
+const ADMIN_PASS = process.env.ADMIN_DEFAULT_PASSWORD ?? '';
 let pass = 0, fail = 0;
 const log = [];
 const check = (name, cond, detail = '') => {
@@ -15,13 +18,13 @@ async function main() {
   check('GET /health 200', r.status === 200, `status=${r.status}`);
 
   // ---- auth ----
-  r = await fetch(`${BASE}/auth/login`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ username: 'admin', password: 'aba1234' }) });
+  r = await fetch(`${BASE}/auth/login`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ username: ADMIN_USER, password: ADMIN_PASS }) });
   b = await j(r);
   check('POST /auth/login -> token+user', r.status >= 200 && r.status < 300 && !!b.token && !!b.user, `status=${r.status} ${JSON.stringify(b).slice(0, 140)}`);
   const token = b.token;
   const auth = { Authorization: `Bearer ${token}` };
 
-  r = await fetch(`${BASE}/auth/login`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ username: 'admin', password: 'wrong' }) });
+  r = await fetch(`${BASE}/auth/login`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ username: ADMIN_USER, password: 'wrong' }) });
   b = await j(r);
   check('POST /auth/login bad pw -> 401', r.status === 401 && b.error?.code === 'INVALID_CREDENTIALS', `status=${r.status} ${JSON.stringify(b)}`);
 

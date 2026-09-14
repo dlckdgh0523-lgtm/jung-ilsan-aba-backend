@@ -72,7 +72,7 @@ POSTGRES_USER=aba
 POSTGRES_PASSWORD=<강력한 비밀번호>
 POSTGRES_DB=aba
 ADMIN_DEFAULT_USERNAME=JungAba2575
-ADMIN_DEFAULT_PASSWORD=JungAbaQba1329
+ADMIN_DEFAULT_PASSWORD=<강력한 비밀번호, 10자 이상 영문+숫자>   # 절대 커밋 금지
 CORS_ORIGINS=https://<your-project>.vercel.app   # 커스텀 도메인 쓰면 그것도 쉼표로 추가
 # ── 업로드: S3 ──
 UPLOAD_DRIVER=s3
@@ -219,3 +219,41 @@ sudo certbot certonly --standalone -d api.도메인.com   # 80 필요(nginx 잠�
 - 이미지도 자체 스토리지(S3/R2 또는 로컬)로 미러링해 저장하므로 네이버 CDN 핫링크에 의존하지 않는다.
 - 블로그 글 **수정은 반영하지 않는다** (새 글 1회 가져오기만). 수정 반영이 필요하면 공지를 지우지 말고
   관리자페이지에서 직접 고칠 것.
+
+---
+
+## 12. 관리자 비밀번호 변경 — 2026-09 추가
+
+두 가지 방법이 있다. 어느 쪽이든 성공 시 **기존 로그인 세션(토큰)은 전부 무효화**된다.
+
+### (a) 서버 쉘에서 즉시 재설정 (비밀번호를 잊었거나 유출됐을 때)
+
+Render 대시보드 → 서비스 → **Shell** 탭에서:
+
+```bash
+ADMIN_NEW_PASSWORD='<새 비밀번호>' node prisma/set-admin-password.js
+```
+
+- 새 비밀번호 규칙: **10자 이상, 영문+숫자 포함** (미달 시 실행 거부).
+- 계정명은 `ADMIN_DEFAULT_USERNAME` 환경변수를 따른다(기본 `admin`).
+- 비밀번호는 환경변수로만 전달하고(argv 금지 — 쉘 히스토리에 남음), 어떤 로그에도 출력되지 않는다.
+- 실행 후 관리자페이지에서 새 비밀번호로 다시 로그인한다.
+
+### (b) 관리자페이지 / API에서 변경 (평상시)
+
+```
+PATCH /v1/auth/password        (로그인 토큰 필요, 분당 5회 제한)
+Body: { "currentPassword": "...", "newPassword": "..." }
+```
+
+- 현재 비밀번호가 틀리면 401 `INVALID_CREDENTIALS`.
+- 새 비밀번호 규칙 위반 시 422 `WEAK_PASSWORD`, 현재와 동일하면 422 `PASSWORD_UNCHANGED`.
+- 성공 시 `{ "token": "..." }` — 다른 기기의 세션은 모두 로그아웃되고,
+  **호출한 브라우저는 이 새 토큰으로 교체하면 로그인이 유지**된다.
+
+### 주의
+
+- `ADMIN_DEFAULT_PASSWORD`는 **최초 시드에서 계정을 만들 때만** 쓰인다. 계정이 이미 있으면
+  이 값을 바꿔도 비밀번호는 바뀌지 않는다 → 위의 (a) 또는 (b)를 사용할 것.
+- 시드(`npm run db:seed`)는 `ADMIN_DEFAULT_PASSWORD`가 없거나 10자 미만이면 중단된다.
+- 실제 비밀번호를 이 문서를 포함해 레포 어디에도 적지 말 것 (public 레포).

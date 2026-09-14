@@ -57,7 +57,9 @@ export default (): AppConfig => ({
   },
   admin: {
     username: process.env.ADMIN_DEFAULT_USERNAME ?? 'admin',
-    password: process.env.ADMIN_DEFAULT_PASSWORD ?? 'aba1234',
+    // No fallback on purpose — a guessable default password must never exist.
+    // Only the seed consumes this, and seed.ts refuses to run without it.
+    password: process.env.ADMIN_DEFAULT_PASSWORD ?? '',
   },
   corsOrigins: toList(process.env.CORS_ORIGINS),
   upload: {
