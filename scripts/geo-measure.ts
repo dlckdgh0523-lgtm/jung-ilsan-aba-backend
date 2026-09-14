@@ -14,6 +14,8 @@ import * as path from 'path';
 
 const API_KEY = process.env.ANTHROPIC_API_KEY || process.env.LLM_API_KEY || '';
 const MODEL = process.env.GEO_MEASURE_MODEL || 'claude-haiku-4-5-20251001';
+/** 프롬프트당 반복 횟수(1~5). LLM 비결정성 노이즈 완화 — 과반 기준으로 집계. */
+const REPEAT = Math.max(1, Math.min(5, parseInt(process.env.GEO_MEASURE_REPEAT || '1', 10) || 1));
 
 export const PROMPTS: string[] = [
   '일산 ABA 센터 추천해줘',
@@ -47,6 +49,10 @@ interface PromptResult {
   ourCited: boolean; // 인용/검색결과 URL에 chungaba.com 포함
   citedUrls: { url: string; title?: string }[];
   answerSnippet: string;
+  /** 반복 측정 투명성: 언급/인용이 나온 회수와 총 반복 수 */
+  mentionRuns?: number;
+  citedRuns?: number;
+  runsTotal?: number;
 }
 
 /** 응답 content 블록에서 텍스트와 인용/검색결과 URL을 수집한다. */
@@ -72,7 +78,37 @@ export function parseContent(content: unknown[]): {
   return { text, urls };
 }
 
+/** 프롬프트당 REPEAT회 실행 → 과반 기준 집계 (노이즈 완화). */
 async function measureOne(n: number, prompt: string): Promise<PromptResult> {
+  const runs: PromptResult[] = [];
+  for (let k = 0; k < REPEAT; k++) {
+    runs.push(await attemptOne(n, prompt));
+    if (k < REPEAT - 1) await new Promise((r) => setTimeout(r, 500));
+  }
+  const okRuns = runs.filter((r) => r.ok);
+  const need = Math.ceil(REPEAT / 2);
+  const mentionRuns = okRuns.filter((r) => r.ourMention).length;
+  const citedRuns = okRuns.filter((r) => r.ourCited).length;
+  const urls = [
+    ...new Map(okRuns.flatMap((r) => r.citedUrls).map((u) => [u.url, u])).values(),
+  ].slice(0, 8);
+  const firstOk = okRuns[0];
+  return {
+    n,
+    prompt,
+    ok: okRuns.length > 0,
+    error: okRuns.length > 0 ? undefined : runs[0]?.error,
+    ourMention: mentionRuns >= need,
+    ourCited: citedRuns >= need,
+    citedUrls: urls,
+    answerSnippet: firstOk ? firstOk.answerSnippet : '',
+    mentionRuns,
+    citedRuns,
+    runsTotal: REPEAT,
+  };
+}
+
+async function attemptOne(n: number, prompt: string): Promise<PromptResult> {
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -182,9 +218,10 @@ async function main(): Promise<void> {
 
 > **주의: API 측정치는 실제 사용자 화면(ChatGPT 웹·Perplexity·네이버 AI브리핑·구글 AI Overview)과 다를 수 있는 참고 지표입니다.** 공식 기록은 B트랙(수동 측정)입니다.
 
-- 모델: ${MODEL} (웹서치 max_uses=1/질문)
+- 모델: ${MODEL} · 웹서치 max_uses=1/요청 · **프롬프트당 ${REPEAT}회 측정, 과반 기준 집계**
 - 성공 ${okCount}/${PROMPTS.length} · **우리 언급 ${mention}건 · 우리 인용 ${cited}건**
 - **${deltaLine}**
+- ⚠️ LLM 응답은 비결정적입니다 — 주간 ±1~2 변화는 노이즈 범위일 수 있으니 **추세(방향)**로 판단하세요.
 
 ## 프롬프트별 결과
 
@@ -208,6 +245,15 @@ ${results.map((r) => `**${r.n}. ${r.prompt}**${r.error ? ` (오류: ${r.error})`
   fs.writeFileSync(path.join(outDir, `${date}-api.md`), md);
   console.log(`\n저장: docs/geo-reports/${date}-api.{json,md} + trend.json`);
   console.log(`요약: 성공 ${okCount}/20, 언급 ${mention}, 인용 ${cited} — ${deltaLine}`);
+
+  // 조용한 죽음 방지: 성공률이 낮으면(키 만료·잔액 소진·API 장애) 비정상 종료로 빨간불을 띄운다.
+  const minOk = Math.ceil(PROMPTS.length * 0.75);
+  if (okCount < minOk) {
+    console.error(
+      `\n측정 실패: 성공 ${okCount}/${PROMPTS.length} (< ${minOk}) — API 키·잔액·Anthropic 상태를 확인하세요.`,
+    );
+    process.exitCode = 2;
+  }
 }
 
 if (require.main === module) void main();
