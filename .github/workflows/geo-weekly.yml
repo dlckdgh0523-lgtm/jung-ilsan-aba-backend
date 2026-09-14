@@ -1,0 +1,49 @@
+# 주간 GEO 자동 측정 — 매주 월요일 KST 09:47, 리포트를 레포에 자동 커밋한다.
+# 필요 조건: 레포 Secrets에 ANTHROPIC_API_KEY (없으면 경고만 남기고 건너뜀).
+# 비용: 회당 약 $0.3 (Haiku + 웹서치 20회) — 월 약 $1.3.
+name: GEO Weekly Measure
+
+on:
+  schedule:
+    - cron: '47 0 * * 1' # UTC 월 00:47 = KST 월 09:47
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  measure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Run measurement
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "::warning::ANTHROPIC_API_KEY 시크릿이 없어 이번 측정을 건너뜁니다. (Settings → Secrets → Actions에 등록)"
+            exit 0
+          fi
+          npm run geo:measure
+
+      - name: Commit report
+        run: |
+          git config user.name "geo-measure-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add docs/geo-reports
+          if git diff --cached --quiet; then
+            echo "변경 없음 — 커밋 생략"
+            exit 0
+          fi
+          git commit -m "chore: 주간 GEO 자동 측정 리포트 [skip ci]"
+          git push

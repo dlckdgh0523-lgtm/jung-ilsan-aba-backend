@@ -161,12 +161,30 @@ async function main(): Promise<void> {
     JSON.stringify({ date, model: MODEL, summary: { okCount, mention, cited }, results }, null, 2),
   );
 
+  // 추세 기록(trend.json) — 관리자 대시보드 "AI 노출 추이" 카드가 이 파일을 읽는다.
+  const trendPath = path.join(outDir, 'trend.json');
+  let trend: { date: string; mention: number; cited: number; ok: number }[] = [];
+  try {
+    trend = JSON.parse(fs.readFileSync(trendPath, 'utf8')) as typeof trend;
+  } catch {
+    trend = [];
+  }
+  const prev = [...trend].reverse().find((t) => t.date !== date) ?? null;
+  trend = trend.filter((t) => t.date !== date); // 같은 날 재실행 → 갱신
+  trend.push({ date, mention, cited, ok: okCount });
+  fs.writeFileSync(trendPath, JSON.stringify(trend, null, 2));
+  const sign = (n: number) => (n >= 0 ? `+${n}` : `${n}`);
+  const deltaLine = prev
+    ? `직전 측정(${prev.date}) 대비: 언급 ${sign(mention - prev.mention)} · 인용 ${sign(cited - prev.cited)}`
+    : '첫 측정 (비교 대상 없음)';
+
   const md = `# GEO A트랙 API 측정 리포트 — ${date}
 
 > **주의: API 측정치는 실제 사용자 화면(ChatGPT 웹·Perplexity·네이버 AI브리핑·구글 AI Overview)과 다를 수 있는 참고 지표입니다.** 공식 기록은 B트랙(수동 측정)입니다.
 
 - 모델: ${MODEL} (웹서치 max_uses=1/질문)
 - 성공 ${okCount}/${PROMPTS.length} · **우리 언급 ${mention}건 · 우리 인용 ${cited}건**
+- **${deltaLine}**
 
 ## 프롬프트별 결과
 
@@ -188,8 +206,8 @@ ${topComp.map(([h, c]) => `- ${h} — ${c}회`).join('\n') || '- (없음)'}
 ${results.map((r) => `**${r.n}. ${r.prompt}**${r.error ? ` (오류: ${r.error})` : ''}\n> ${r.answerSnippet || '(없음)'}`).join('\n\n')}
 `;
   fs.writeFileSync(path.join(outDir, `${date}-api.md`), md);
-  console.log(`\n저장: docs/geo-reports/${date}-api.{json,md}`);
-  console.log(`요약: 성공 ${okCount}/20, 언급 ${mention}, 인용 ${cited}`);
+  console.log(`\n저장: docs/geo-reports/${date}-api.{json,md} + trend.json`);
+  console.log(`요약: 성공 ${okCount}/20, 언급 ${mention}, 인용 ${cited} — ${deltaLine}`);
 }
 
 if (require.main === module) void main();
