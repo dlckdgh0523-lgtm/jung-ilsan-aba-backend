@@ -628,17 +628,26 @@ ${faqs.map((f) => `<h2>Q. ${escapeHtml(f.question)}</h2><p>${escapeHtml(f.answer
     ]);
     const dCerts = this.certList(director?.certifications).map((c) => c.code);
 
+    // SPA 치료사 상세와 동일한 섹션 구성·라벨: 학력 / 근무 경력 / 자격증 / 강의 경력 / 논문 / 이수.
     const cards = therapists
       .map((t) => {
         const certs = this.strList(t.certifications);
         const education = this.strList(t.education);
         const teaching = this.strList(t.teaching);
+        const career = this.careerList(t.career);
+        const papers = (Array.isArray(t.papers) ? t.papers : []) as {
+          year?: string;
+          title?: string;
+        }[];
+        const validPapers = papers.filter((p) => p && p.title);
         return `<article>
 <h2>${escapeHtml(t.name)}${t.role ? ` <small>· ${escapeHtml(t.role)}</small>` : ''}</h2>
 ${t.summary ? `<p>${escapeHtml(t.summary)}</p>` : ''}
-${certs.length ? `<h3>자격</h3><ul>${certs.map((c) => `<li>${escapeHtml(c)}</li>`).join('')}</ul>` : ''}
-${education.length ? `<h3>학력·교육</h3><ul>${education.map((e) => `<li>${escapeHtml(e)}</li>`).join('')}</ul>` : ''}
-${teaching.length ? `<h3>주요 지도 분야</h3><ul>${teaching.map((x) => `<li>${escapeHtml(x)}</li>`).join('')}</ul>` : ''}
+${education.length ? `<h3>학력</h3><ul>${education.map((e) => `<li>${escapeHtml(e)}</li>`).join('')}</ul>` : ''}
+${career.length ? `<h3>근무 경력</h3><ul>${career.map((c) => `<li>${c.period ? `[${escapeHtml(c.period)}] ` : ''}${escapeHtml(c.text)}</li>`).join('')}</ul>` : ''}
+${certs.length ? `<h3>자격증</h3><ul>${certs.map((c) => `<li>${escapeHtml(c)}</li>`).join('')}</ul>` : ''}
+${teaching.length ? `<h3>강의 경력</h3><ul>${teaching.map((x) => `<li>${escapeHtml(x)}</li>`).join('')}</ul>` : ''}
+${validPapers.length ? `<h3>논문</h3><ul>${validPapers.map((p) => `<li>${p.year ? `(${escapeHtml(p.year)}) ` : ''}${escapeHtml(p.title || '')}</li>`).join('')}</ul>` : ''}
 ${t.completion ? `<p>${escapeHtml(t.completion)}</p>` : ''}
 </article>`;
       })
@@ -662,6 +671,7 @@ ${t.completion ? `<p>${escapeHtml(t.completion)}</p>` : ''}
       ],
       bodyHtml: `<h1>치료사 소개</h1>
 <p class="meta"><a href="${base}/">홈</a> · 박사 센터장 슈퍼비전 체계로 운영되는 치료진</p>
+<p>정지은일산ABA의 치료팀은 센터장과 치료사 ${therapists.length}명으로 구성되며, 행동분석 자격과 관련 학위·임상 경력을 갖춘 치료사들이 아동별 개별 ABA 중재를 담당합니다. 모든 회기는 박사 센터장(BCBA-D)의 정기 슈퍼비전 아래 운영됩니다.</p>
 <article>
 <h2>센터장 — ${escapeHtml(director?.name || '정지은')}${dCerts.length ? ` <small>(${escapeHtml(dCerts.slice(0, 3).join(', '))})</small>` : ''}</h2>
 <p>센터장이 아동의 평가, 중재계획, 프로그램 운영과 치료사 슈퍼비전을 총괄합니다. 학력·경력·연구는 <a href="${base}/about">센터 소개</a>에서 자세히 볼 수 있습니다.</p>
