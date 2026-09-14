@@ -7,6 +7,9 @@ import { escapeHtml, escapeXml, sanitizeRichHtml, seoPageShell } from './render.
 
 const ORG_ID = 'https://www.chungaba.com/#organization';
 
+/** 조직 JSON-LD(프론트 index.html)의 areaServed와 동일하게 유지한다. */
+const AREA_SERVED = ['고양시', '일산서구', '일산동구', '일산', '파주시', '운정신도시', '김포시'];
+
 function fmtDate(d?: Date | string | null): string {
   if (!d) return '';
   const date = new Date(d);
@@ -323,6 +326,19 @@ ${tag.description ? `<p>${escapeHtml(tag.description)}</p>` : ''}
     return Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string' && !!x) : [];
   }
 
+  /** 정적 페이지 공통 breadcrumb — 화면의 "홈 · …" 라인과 1:1 대응. */
+  private breadcrumbLd(name: string, path: string): object {
+    const base = this.frontBase;
+    return {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: '홈', item: `${base}/` },
+        { '@type': 'ListItem', position: 2, name, item: `${base}${path}` },
+      ],
+    };
+  }
+
   async aboutHtml(): Promise<string> {
     const base = this.frontBase;
     const [about, director] = await Promise.all([
@@ -353,6 +369,7 @@ ${tag.description ? `<p>${escapeHtml(tag.description)}</p>` : ''}
           url: `${base}/about`,
           mainEntity: { '@id': ORG_ID },
         },
+        this.breadcrumbLd('센터 소개', '/about'),
       ],
       bodyHtml: `<h1>센터 소개</h1>
 <p class="meta"><a href="${base}/">홈</a> · 정지은일산ABA — 고양시 일산서구 주엽동 ABA 전문기관</p>
@@ -409,17 +426,18 @@ ${subs.map((sc) => `<h3>${escapeHtml(sc.heading || '')}</h3><p>${escapeHtml(sc.b
               name: pr.title,
               description: pr.desc || undefined,
               provider: { '@id': ORG_ID },
-              areaServed: ['고양시', '일산서구', '파주시', '김포시'],
+              areaServed: AREA_SERVED,
             },
           })),
         },
+        this.breadcrumbLd('치료 프로그램', '/programs'),
       ],
       bodyHtml: `<h1>치료 프로그램</h1>
 <p class="meta"><a href="${base}/">홈</a> · 아이의 발달수준과 행동 기능에 맞춘 개별화 ABA 프로그램</p>
 <article>
 ${sections || '<p>프로그램 정보를 준비 중입니다.</p>'}
 <h2>프로그램 선택이 어려우신가요?</h2>
-<p>초기상담에서 아이의 현재 발달과 주 호소를 살펴보고 알맞은 프로그램을 안내드립니다. <a href="${base}/contact">상담 안내</a>를 확인하시거나, ABA가 처음이라면 <a href="${base}/faq">자주 묻는 질문</a>과 <a href="${base}/blog">소식·블로그</a>의 전문 정보를 먼저 읽어보세요.</p>
+<p>초기상담에서 아이의 현재 발달과 주 호소를 살펴보고 알맞은 프로그램을 안내드립니다. <a href="${base}/contact">상담 안내</a>를 확인하시거나, ABA가 처음이라면 <a href="${base}/faq">자주 묻는 질문</a>과 <a href="${base}/blog">소식·블로그</a>의 전문 정보를 먼저 읽어보세요. 모든 프로그램은 <a href="${base}/about">센터 소개</a>의 운영 철학과 <a href="${base}/team">치료사 소개</a>의 슈퍼비전 체계 안에서 진행됩니다.</p>
 </article>
 <div class="cta-box"><strong>정지은일산ABA</strong> — 고양시 일산 지역 ABA 전문기관<br><a href="${base}/contact">상담 안내 보기</a></div>`,
     });
@@ -450,13 +468,14 @@ ${sections || '<p>프로그램 정보를 준비 중입니다.</p>'}
                 acceptedAnswer: { '@type': 'Answer', text: f.answer },
               })),
             },
+            this.breadcrumbLd('자주 묻는 질문', '/faq'),
           ]
-        : [],
+        : [this.breadcrumbLd('자주 묻는 질문', '/faq')],
       bodyHtml: `<h1>자주 묻는 질문</h1>
 <p class="meta"><a href="${base}/">홈</a> · ABA가 처음인 부모님을 위한 안내</p>
 <article>
 ${faqs.map((f) => `<h2>Q. ${escapeHtml(f.question)}</h2><p>${escapeHtml(f.answer)}</p>`).join('\n') || '<p>등록된 질문이 없습니다.</p>'}
-<p>더 궁금한 점은 <a href="${base}/contact">상담 안내</a>에서 문의 방법을 확인하세요. 프로그램별 자세한 내용은 <a href="${base}/programs">치료 프로그램</a>에 있습니다.</p>
+<p>더 궁금한 점은 <a href="${base}/contact">상담 안내</a>에서 문의 방법을 확인하세요. 프로그램별 자세한 내용은 <a href="${base}/programs">치료 프로그램</a>에, 치료진의 자격과 슈퍼비전 체계는 <a href="${base}/team">치료사 소개</a>에 있습니다.</p>
 </article>
 <div class="cta-box"><strong>정지은일산ABA</strong> — 고양시 일산 지역 ABA 전문기관<br><a href="${base}/contact">상담 안내 보기</a></div>`,
     });
@@ -484,6 +503,7 @@ ${faqs.map((f) => `<h2>Q. ${escapeHtml(f.question)}</h2><p>${escapeHtml(f.answer
           url: `${base}/contact`,
           mainEntity: { '@id': ORG_ID },
         },
+        this.breadcrumbLd('상담 안내', '/contact'),
       ],
       bodyHtml: `<h1>상담 안내 · 오시는 길</h1>
 <p class="meta"><a href="${base}/">홈</a> · 처음 오시는 부모님을 위한 안내</p>
@@ -495,7 +515,7 @@ ${faqs.map((f) => `<h2>Q. ${escapeHtml(f.question)}</h2><p>${escapeHtml(f.answer
 <li>홈페이지 <a href="${base}/#contact">상담 신청 폼</a></li>
 </ul>
 <h2>상담은 이렇게 진행됩니다</h2>
-<p>초기상담에서 아이의 발달 상태와 주 호소를 함께 살펴보고, 필요 시 발달평가를 거쳐 아이에게 맞는 프로그램과 목표를 안내드립니다. 프로그램별 안내는 <a href="${base}/programs">치료 프로그램</a>, 자주 묻는 내용은 <a href="${base}/faq">FAQ</a>에서 미리 확인하실 수 있습니다.</p>
+<p>초기상담에서 아이의 발달 상태와 주 호소를 함께 살펴보고, 필요 시 발달평가를 거쳐 아이에게 맞는 프로그램과 목표를 안내드립니다. 프로그램별 안내는 <a href="${base}/programs">치료 프로그램</a>, 자주 묻는 내용은 <a href="${base}/faq">FAQ</a>에서 미리 확인하실 수 있습니다. 센터의 운영 철학과 치료진이 궁금하시면 <a href="${base}/about">센터 소개</a>와 <a href="${base}/team">치료사 소개</a>를 먼저 읽어보세요.</p>
 <h2>오시는 길</h2>
 <p><strong>${escapeHtml(address)}</strong></p>
 <ul>
@@ -549,6 +569,7 @@ ${t.completion ? `<p>${escapeHtml(t.completion)}</p>` : ''}
           url: `${base}/team`,
           about: { '@id': ORG_ID },
         },
+        this.breadcrumbLd('치료사 소개', '/team'),
       ],
       bodyHtml: `<h1>치료사 소개</h1>
 <p class="meta"><a href="${base}/">홈</a> · 박사 센터장 슈퍼비전 체계로 운영되는 치료진</p>
