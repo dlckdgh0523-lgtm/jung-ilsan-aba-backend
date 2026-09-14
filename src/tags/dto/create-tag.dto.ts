@@ -1,12 +1,4 @@
-import {
-  IsBoolean,
-  IsIn,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  Matches,
-  MaxLength,
-} from 'class-validator';
+import { IsBoolean, IsIn, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
 
 export const TAG_TYPES = ['LOCATION', 'SERVICE', 'CONDITION', 'AUDIENCE', 'TOPIC'] as const;
 export type TagType = (typeof TAG_TYPES)[number];
@@ -17,13 +9,14 @@ export class CreateTagDto {
   @MaxLength(60)
   name!: string;
 
-  /** Optional — derived from name when omitted. */
+  /**
+   * Optional — derived from name when omitted. No format check here: the
+   * service runs slugify() on whatever arrives (spaces/uppercase included),
+   * so rejecting at the DTO only produced opaque 422s from the admin page.
+   */
   @IsOptional()
   @IsString()
   @MaxLength(120)
-  @Matches(/^[a-z0-9가-힣ㄱ-ㅎㅏ-ㅣ-]+$/, {
-    message: 'slug는 소문자·숫자·한글·하이픈만 허용됩니다',
-  })
   slug?: string;
 
   @IsOptional()
