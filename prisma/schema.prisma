@@ -338,8 +338,13 @@ model Article {
   canonicalUrl       String?          @map("canonical_url")
   // GEO — links the article to the institution's context
   targetAudience     String?          @map("target_audience")
+  // Legacy single-value columns: kept in sync with the FIRST element of the
+  // arrays below (related-posts bucketing and old clients read these).
   relatedProgram     String?          @map("related_program") // Program.id
   relatedLocation    String?          @map("related_location")
+  // Multi-value (2026-09-15): a post can link several programs/locations.
+  relatedPrograms    Json             @default("[]") @map("related_programs") // Program.id[]
+  relatedLocations   Json             @default("[]") @map("related_locations") // string[]
   faqItems           Json             @default("[]") @map("faq_items") // [{ q, a }]
   structuredDataType String?          @map("structured_data_type") // Article (default) | FAQPage
   isFeatured         Boolean          @default(false) @map("is_featured")

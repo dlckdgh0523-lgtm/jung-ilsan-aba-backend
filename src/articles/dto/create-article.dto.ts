@@ -70,6 +70,7 @@ export class CreateArticleDto extends OrderedContentDto {
   @MaxLength(200)
   targetAudience?: string;
 
+  /** Legacy single-value fields — still accepted; folded into the arrays below. */
   @IsOptional()
   @IsString()
   @MaxLength(100)
@@ -79,6 +80,19 @@ export class CreateArticleDto extends OrderedContentDto {
   @IsString()
   @MaxLength(200)
   relatedLocation?: string;
+
+  /** Program.id[] — a post can link several programs (2026-09-15). */
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(20)
+  @IsString({ each: true })
+  relatedPrograms?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(20)
+  @IsString({ each: true })
+  relatedLocations?: string[];
 
   /** [{ q, a }] — rendered on the page AND mirrored into FAQPage JSON-LD. */
   @IsOptional()

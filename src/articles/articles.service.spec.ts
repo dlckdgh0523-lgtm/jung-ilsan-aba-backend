@@ -133,6 +133,49 @@ describe('ArticlesService.create', () => {
     );
   });
 
+  it('multi related: arrays are cleaned/deduped and the FIRST element mirrors into the legacy columns', async () => {
+    const { prisma, service } = makeService();
+    prisma.article.findFirst.mockResolvedValue(null);
+    prisma.article.create.mockImplementation(({ data }: { data: Record<string, unknown> }) =>
+      Promise.resolve(articleRow({ ...data, tags: [] })),
+    );
+    await service.create({
+      title: '지역 다중 연결',
+      relatedPrograms: ['p1', ' p2 ', 'p1', ''],
+      relatedLocations: ['고양시', '파주시'],
+    });
+    const data = prisma.article.create.mock.calls[0][0].data;
+    expect(data.relatedPrograms).toEqual(['p1', 'p2']);
+    expect(data.relatedProgram).toBe('p1');
+    expect(data.relatedLocations).toEqual(['고양시', '파주시']);
+    expect(data.relatedLocation).toBe('고양시');
+  });
+
+  it('multi related: a legacy single value is promoted into the array', async () => {
+    const { prisma, service } = makeService();
+    prisma.article.findFirst.mockResolvedValue(null);
+    prisma.article.create.mockImplementation(({ data }: { data: Record<string, unknown> }) =>
+      Promise.resolve(articleRow({ ...data, tags: [] })),
+    );
+    await service.create({ title: '구버전 입력', relatedProgram: 'p9' });
+    const data = prisma.article.create.mock.calls[0][0].data;
+    expect(data.relatedPrograms).toEqual(['p9']);
+    expect(data.relatedProgram).toBe('p9');
+  });
+
+  it('multi related: update without those fields leaves them untouched', async () => {
+    const { prisma, service } = makeService();
+    prisma.article.findUnique.mockResolvedValue(articleRow());
+    prisma.article.findFirst.mockResolvedValue(null);
+    prisma.article.update.mockImplementation(({ data }: { data: Record<string, unknown> }) =>
+      Promise.resolve(articleRow({ ...data, tags: [] })),
+    );
+    await service.update('a1', { excerpt: '요약만 수정' });
+    const data = prisma.article.update.mock.calls[0][0].data as Record<string, unknown>;
+    expect(data).not.toHaveProperty('relatedPrograms');
+    expect(data).not.toHaveProperty('relatedProgram');
+  });
+
   it('rejects more tags than ARTICLE_MAX_TAGS (30)', async () => {
     const { prisma, service } = makeService();
     prisma.article.findFirst.mockResolvedValue(null);

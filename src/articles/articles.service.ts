@@ -129,6 +129,30 @@ export class ArticlesService {
       throw AppException.badRequest('존재하지 않는 태그가 포함되어 있습니다');
   }
 
+  /**
+   * Multi-value related fields (2026-09-15): arrays are canonical, and the
+   * legacy single columns mirror the FIRST element (related-posts bucketing
+   * and older clients keep working). Accepts either shape as input.
+   */
+  private normalizeRelated(data: Record<string, unknown>): Record<string, unknown> {
+    const out = { ...data };
+    const fold = (arrayKey: string, singleKey: string) => {
+      let arr = out[arrayKey];
+      if (arr === undefined && out[singleKey] === undefined) return; // untouched on update
+      if (!Array.isArray(arr)) {
+        arr = typeof out[singleKey] === 'string' && out[singleKey] ? [out[singleKey]] : [];
+      }
+      const cleaned = (arr as unknown[])
+        .filter((v): v is string => typeof v === 'string' && v.trim() !== '')
+        .map((v) => v.trim());
+      out[arrayKey] = [...new Set(cleaned)];
+      out[singleKey] = (out[arrayKey] as string[])[0] ?? null;
+    };
+    fold('relatedPrograms', 'relatedProgram');
+    fold('relatedLocations', 'relatedLocation');
+    return out;
+  }
+
   /** Default SEO values from title/content when the admin left them empty (spec §7). */
   private seoDefaults(data: Record<string, unknown>): Record<string, unknown> {
     const out = { ...data };
@@ -151,7 +175,7 @@ export class ArticlesService {
     if (!slug) throw AppException.badRequest('슬러그를 만들 수 없는 제목입니다');
     await this.assertSlugFree(slug);
     await this.validateTagIds(tagIds);
-    const payload = this.seoDefaults({ ...rest, slug });
+    const payload = this.normalizeRelated(this.seoDefaults({ ...rest, slug }));
     if (payload.status === 'published' && !payload.publishedAt) payload.publishedAt = new Date();
     const created = await this.prisma.article.create({
       data: {
@@ -176,7 +200,9 @@ export class ArticlesService {
     }
     if (tagIds !== undefined) await this.validateTagIds(tagIds);
 
-    const payload = this.seoDefaults({ ...rest, title: rest.title ?? current.title });
+    const payload = this.normalizeRelated(
+      this.seoDefaults({ ...rest, title: rest.title ?? current.title }),
+    );
     delete payload.title;
     if (rest.title !== undefined) payload.title = rest.title;
     // First transition into "published" stamps publishedAt (kept on later edits).

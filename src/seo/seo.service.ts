@@ -113,11 +113,25 @@ export class SeoService {
       return null;
     }
     const related = await this.articles.related(article.id, 6).catch(() => [] as ArticleView[]);
-    const program = article.relatedProgram
+    // Multi-value first (relatedPrograms Json string[]); legacy single as fallback.
+    const programIds = [
+      ...new Set(
+        [
+          ...(Array.isArray(article.relatedPrograms) ? (article.relatedPrograms as string[]) : []),
+          article.relatedProgram ?? '',
+        ].filter((id): id is string => typeof id === 'string' && id !== ''),
+      ),
+    ];
+    const programs = programIds.length
       ? await this.prisma.program
-          .findFirst({ where: { id: article.relatedProgram, deletedAt: null } })
-          .catch(() => null)
-      : null;
+          .findMany({ where: { id: { in: programIds }, deletedAt: null } })
+          .catch(() => [])
+      : [];
+    const locations = Array.isArray(article.relatedLocations)
+      ? (article.relatedLocations as string[]).filter((l) => typeof l === 'string' && l)
+      : article.relatedLocation
+        ? [article.relatedLocation]
+        : [];
 
     const canonical = article.canonicalUrl || `${base}/blog/${encodeURIComponent(article.slug)}`;
     const faqs = (Array.isArray(article.faqItems) ? article.faqItems : []) as {
@@ -136,6 +150,9 @@ export class SeoService {
         dateModified: article.updatedAt,
         mainEntityOfPage: canonical,
         ...(article.thumbnail ? { image: article.thumbnail } : {}),
+        ...(locations.length > 0
+          ? { contentLocation: locations.map((name) => ({ '@type': 'Place', name })) }
+          : {}),
         author: { '@type': 'Organization', name: '정지은일산ABA', '@id': ORG_ID },
         publisher: { '@id': ORG_ID },
       },
@@ -180,9 +197,15 @@ export class SeoService {
           )
           .join('')}</ul>`
       : '';
-    const programHtml = program
-      ? `<h2 class="section-h">관련 프로그램</h2><ul class="cards"><li><a href="${base}/#program-${escapeHtml(program.id)}">${escapeHtml(program.title)}</a><p>${escapeHtml(program.desc || '')}</p></li></ul>`
-      : '';
+    const programHtml =
+      programs.length > 0
+        ? `<h2 class="section-h">관련 프로그램</h2><ul class="cards">${programs
+            .map(
+              (p) =>
+                `<li><a href="${base}/#program-${escapeHtml(p.id)}">${escapeHtml(p.title)}</a><p>${escapeHtml(p.desc || '')}</p></li>`,
+            )
+            .join('')}</ul>`
+        : '';
 
     return seoPageShell({
       title: `${article.seoTitle || article.title} | 정지은일산ABA`.replace(

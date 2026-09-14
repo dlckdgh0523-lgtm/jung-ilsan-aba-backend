@@ -29,7 +29,10 @@ function makeService() {
       findMany: jest.fn().mockResolvedValue([]),
       count: jest.fn().mockResolvedValue(0),
     },
-    program: { findFirst: jest.fn().mockResolvedValue(null) },
+    program: {
+      findFirst: jest.fn().mockResolvedValue(null),
+      findMany: jest.fn().mockResolvedValue([]),
+    },
   };
   const articles = {
     list: jest.fn().mockResolvedValue({ items: [], page: 1, pageSize: 20, total: 0 }),
@@ -88,7 +91,9 @@ describe('SeoService.articleHtml', () => {
   it('links the related program when one is set', async () => {
     const { prisma, articles, service } = makeService();
     articles.findOne.mockResolvedValue(article({ relatedProgram: 'prog-1', faqItems: [] }));
-    prisma.program.findFirst.mockResolvedValue({ id: 'prog-1', title: '조기교실', desc: '소그룹' });
+    prisma.program.findMany.mockResolvedValue([
+      { id: 'prog-1', title: '조기교실', desc: '소그룹' },
+    ]);
     const html = (await service.articleHtml('ilsan-aba-guide')) as string;
     expect(html).toContain('관련 프로그램');
     expect(html).toContain('#program-prog-1');
