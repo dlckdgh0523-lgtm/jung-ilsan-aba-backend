@@ -11,10 +11,12 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ArticlesService, ArticleView, type ArticleListQuery } from './articles.service';
+import { ArticlesService, ArticleView } from './articles.service';
 import { CreateArticleDto } from './dto/create-article.dto';
+import { ListArticlesDto } from './dto/list-articles.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
 import { VisibilityDto } from '../common/dto/visibility.dto';
+import { clampListQuery } from '../common/pagination/clamp-list-query';
 import type { ListResult } from '../common/pagination/paginate.util';
 import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
 import { AdminOnly } from '../auth/decorators/admin-only.decorator';
@@ -28,10 +30,11 @@ export class ArticlesController {
   @Get()
   @UseGuards(OptionalJwtAuthGuard)
   list(
-    @Query() query: ArticleListQuery,
+    @Query() query: ListArticlesDto,
     @CurrentUser() user?: AuthUser,
   ): Promise<ListResult<ArticleView>> {
-    return this.service.list(query, Boolean(user));
+    const isAdmin = Boolean(user);
+    return this.service.list(clampListQuery(query, isAdmin) as ListArticlesDto, isAdmin);
   }
 
   @Get(':idOrSlug/related')

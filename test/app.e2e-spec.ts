@@ -315,6 +315,29 @@ describe('API (e2e)', () => {
     expect(up.body.url).toMatch(/^\/uploads\//);
   });
 
+  // ── Articles list: @Query must be a DTO class so defaults/coercion apply ──
+  // (regression: an interface here left page/pageSize undefined → skip: NaN → Prisma 400)
+  it('GET /v1/articles with no params → 200 with page=1, pageSize=20 defaults', async () => {
+    const res = await request(http).get('/v1/articles');
+    expect(res.status).toBe(200);
+    expect(res.body.page).toBe(1);
+    expect(res.body.pageSize).toBe(20);
+    expect(Array.isArray(res.body.items)).toBe(true);
+  });
+
+  it('GET /v1/articles?page=2&pageSize=5 coerces the strings to numbers', async () => {
+    const res = await request(http).get('/v1/articles?page=2&pageSize=5');
+    expect(res.status).toBe(200);
+    expect(res.body.page).toBe(2);
+    expect(res.body.pageSize).toBe(5);
+  });
+
+  it('GET /v1/articles?pageSize=abc → 422 validation error', async () => {
+    const res = await request(http).get('/v1/articles?pageSize=abc');
+    expect(res.status).toBe(422);
+    expect(res.body.error.code).toBe('VALIDATION');
+  });
+
   // ── Rate limit: consultations capped at 5/min/IP ──
   it('POST /v1/consultations is rate-limited (429 after the cap)', async () => {
     const body = { parent: '폭주', phone: '010-9999-0000', privacyConsent: true };

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Article, ArticleCategory, Prisma, Tag } from '@prisma/client';
 import { AppException } from '../common/exceptions/app.exception';
-import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
+import { ListArticlesDto } from './dto/list-articles.dto';
 import {
   listResult,
   parseSort,
@@ -19,15 +19,8 @@ export type ArticleView = Article & {
   tags: Tag[];
 };
 
-export interface ArticleListQuery extends PaginationQueryDto {
-  /** Category id or slug. */
-  category?: string;
-  /** Tag id or slug. */
-  tag?: string;
-  /** draft | published | all (non-admins are clamped to published). */
-  status?: string;
-  featured?: string;
-}
+/** Query type for list() — the validated DTO (class, so defaults/coercion apply). */
+export type ArticleListQuery = ListArticlesDto;
 
 const INCLUDE = {
   category: true,
