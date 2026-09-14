@@ -61,6 +61,9 @@ export interface AppConfig {
     apiKey: string;
     model: string;
   };
+  geoReview: {
+    enabled: boolean;
+  };
 }
 
 const toInt = (v: string | undefined, fallback: number): number => {
@@ -149,7 +152,12 @@ export default (): AppConfig => ({
   llm: {
     enabled: process.env.LLM_ENABLED === 'true',
     provider: process.env.LLM_PROVIDER ?? 'anthropic',
-    apiKey: process.env.LLM_API_KEY ?? '',
+    // ANTHROPIC_API_KEY도 허용 — GEO 검수(geo-review)와 키 하나로 공용
+    apiKey: process.env.LLM_API_KEY ?? process.env.ANTHROPIC_API_KEY ?? '',
     model: process.env.LLM_MODEL ?? 'claude-haiku-4-5',
+  },
+  geoReview: {
+    // 기본 off — GEO_REVIEW_ENABLED=true + API 키가 있을 때만 동작
+    enabled: process.env.GEO_REVIEW_ENABLED === 'true',
   },
 });

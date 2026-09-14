@@ -8,6 +8,7 @@ import { BlogSyncController } from './blog-sync.controller';
 import { BlogSyncScheduler } from './blog-sync.scheduler';
 import { BlogSyncService } from './blog-sync.service';
 import { BLOG_FETCH, POST_TRANSFORMER } from './blog-sync.types';
+import { GeoReviewService } from './geo-review.service';
 import { ImageMirrorService } from './image-mirror.service';
 import { NaverPostFetcher } from './naver-post.fetcher';
 import { NaverRssClient } from './naver-rss.client';
@@ -33,6 +34,7 @@ import { LlmPostTransformer } from './transform/llm-post-transformer';
     NaverPostFetcher,
     ImageMirrorService,
     ReviewService,
+    GeoReviewService,
     { provide: BLOG_FETCH, useValue: fetch },
     // Title/summary cleanup: LLM when LLM_ENABLED=true, passthrough otherwise
     // (LlmPostTransformer no-ops when disabled). The body is never LLM-touched.

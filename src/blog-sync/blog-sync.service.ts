@@ -13,6 +13,7 @@ import { truncateHtmlBlocks } from './blog-sync.util';
 import { normalizeNoticeHtml } from './html-normalizer';
 import { ImageMirrorService } from './image-mirror.service';
 import { NaverPostFetcher } from './naver-post.fetcher';
+import { GeoReviewService } from './geo-review.service';
 import { NaverRssClient } from './naver-rss.client';
 import { ReviewService } from './review/review.service';
 
@@ -52,6 +53,7 @@ export class BlogSyncService {
     private readonly realtime: RealtimeService,
     private readonly reviews: ReviewService,
     private readonly alimtalk: AlimtalkService,
+    private readonly geoReview: GeoReviewService,
     @Inject(POST_TRANSFORMER) private readonly transformer: PostTransformer,
     private readonly config: ConfigService<AppConfig, true>,
   ) {}
@@ -240,6 +242,8 @@ export class BlogSyncService {
       sourceTitle: item.title,
       syncedAt: new Date(),
     });
+    // GEO 검수(켜져 있을 때만) — 승인 페이지 표시용. 실패해도 동기화에 영향 없음.
+    void this.geoReview.analyzeAndStore(article.id, title, content);
     return { article, summary: transformed.summary?.trim() || null };
   }
 

@@ -161,6 +161,20 @@ model Therapist {
   @@map("therapists")
 }
 
+// AI/검색 크롤러 방문 기록 (bot-visit.middleware가 UA 매칭 시 기록)
+model BotVisit {
+  id        String   @id @default(cuid())
+  bot       String
+  userAgent String   @map("user_agent")
+  path      String
+  ip        String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([bot, createdAt])
+  @@index([createdAt])
+  @@map("bot_visits")
+}
+
 model Notice {
   id        String    @id @default(cuid())
   title     String
@@ -358,6 +372,8 @@ model Article {
   sourceId           String?          @map("source_id") // Naver logNo
   // Original blog title (title holds the LLM-cleaned one; review page can restore this).
   sourceTitle        String?          @map("source_title")
+  // 블로그 동기화 직후 LLM GEO 검수 결과 (geo-review.service) — 승인 페이지 표시용
+  geoAnalysis        Json?            @map("geo_analysis")
   syncedAt           DateTime?        @map("synced_at")
   review             ArticleReview?
   views              Int              @default(0)

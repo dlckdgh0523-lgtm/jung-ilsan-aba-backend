@@ -1,0 +1,52 @@
+# SSR 회귀 방지 헬스체크 — 하루 2회, 핵심 크롤러 경로가 raw HTML(JS 렌더 전)로
+# 살아있는지 확인한다. 실패 시 워크플로 실패 → GitHub 알림.
+name: SSR Healthcheck
+
+on:
+  schedule:
+    - cron: '17 0,12 * * *' # UTC 00:17/12:17 = KST 09:17/21:17
+  workflow_dispatch: {}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check SSR pages (HTTP 200 + marker in raw HTML)
+        shell: bash
+        run: |
+          set -u
+          BASE="https://www.chungaba.com"
+          fail=0
+          check() {
+            local path="$1" marker="$2"
+            local body code
+            body=$(curl -sS --max-time 30 -w '\n%{http_code}' "$BASE$path") || { echo "FAIL $path (curl error)"; fail=1; return; }
+            code="${body##*$'\n'}"
+            body="${body%$'\n'*}"
+            if [ "$code" != "200" ]; then echo "FAIL $path HTTP $code"; fail=1; return; fi
+            if ! grep -qF "$marker" <<<"$body"; then echo "FAIL $path 마커 없음: $marker"; fail=1; return; fi
+            echo "OK   $path ($code, marker ok)"
+          }
+
+          # 마커는 실제 프로덕션 raw HTML에서 추출한 고유 텍스트 (2026-09-15 기준)
+          check "/about"    "기관 개요"
+          check "/team"     "치료진 운영 방식"
+          check "/programs" "프로그램 선택이 어려우신가요"
+          check "/faq"      "자주 묻는 질문"
+          check "/contact"  "상담 신청 방법"
+          check "/blog"     "소식·블로그"
+          check "/notices"  "공지사항"
+          check "/rss.xml"  "<rss version=\"2.0\""
+          check "/sitemap.xml" "<urlset"
+
+          # 최신 블로그 글: sitemap에서 첫 /blog/ URL을 뽑아 SSR 본문 확인
+          latest=$(curl -sS --max-time 30 "$BASE/sitemap.xml" | grep -o 'https://www\.chungaba\.com/blog/[^<]*' | head -1)
+          if [ -n "$latest" ]; then
+            lpath="${latest#https://www.chungaba.com}"
+            check "$lpath" "og:site_name\" content=\"정지은일산ABA"
+          else
+            echo "WARN sitemap에 블로그 글 없음 (게시글 0건이면 정상)"
+          fi
+
+          exit $fail

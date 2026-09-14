@@ -1,0 +1,773 @@
+{
+  "date": "2026-09-14",
+  "model": "claude-haiku-4-5-20251001",
+  "summary": {
+    "okCount": 20,
+    "mention": 1,
+    "cited": 0
+  },
+  "results": [
+    {
+      "n": 1,
+      "prompt": "일산 ABA 센터 추천해줘",
+      "ok": true,
+      "ourMention": false,
+      "ourCited": false,
+      "citedUrls": [],
+      "answerSnippet": "죄송하지만, 저는 일산의 ABA 센터에 대한 구체적인 추천 정보를 가지고 있지 않습니다. 일산의 ABA(응용행동분석) 센터를 찾으시려면 다음과 같은 방법을 제안드립니다: 1. **인터넷 검색** - \"일산 ABA 센터\", \"일산 응용행동분석 치료\" 등으로 검색 2. **지도 앱** - 네이버 지도, 카카오맵에서 \"ABA 센터\" 또는 \"발달장애 치료\" 검색 3. **지역 커뮤니티** - 육아 카페, 부모 커뮤니티에서 추천 정보 수집 4. **전문 기관 문의** - 일산 보건소나 장애인복지관에 문의 5. **리뷰 사이트** - 네이버 "
+    },
+    {
+      "n": 2,
+      "prompt": "고양시 아동 ABA 치료 어디서 받을 수 있어?",
+      "ok": true,
+      "ourMention": false,
+      "ourCited": false,
+      "citedUrls": [
+        {
+          "url": "https://www.guroaba.co.kr/",
+          "title": "구로ABA아동발달연구소"
+        },
+        {
+          "url": "https://findcenter.kr/",
+          "title": "FindABA · ABA 센터 찾기"
+        },
+        {
+          "url": "https://www.aesolacademy.org/aba",
+          "title": "1:1 심층 Aba 조기 및 개별치료 | 에이솔 아카데미 | 서울특별시"
+        },
+        {
+          "url": "https://www.aesolacademy.org/abaprogram",
+          "title": "1:1 ABA 응용행동분석 치료교육"
+        },
+        {
+          "url": "https://mio100.com/aba/",
+          "title": "ABA 치료 - 미오백아동발달상담센터"
+        },
+        {
+          "url": "http://ilsanaba.com/",
+          "title": "일산ABA행동발달연구소"
+        },
+        {
+          "url": "https://www.happyaba.com/",
+          "title": "즐거운ABA아동발달연구소"
+        },
+        {
+          "url": "https://www.catsaba.com/blank-3",
+          "title": "ABA소개 | cats"
+        }
+      ],
+      "answerSnippet": "고양시에서 아동 ABA 치료를 받을 수 있는 장소에 대해 검색해드리겠습니다. 고양시에서 아동 ABA 치료를 받을 수 있는 센터를 찾았습니다: ## 고양시 ABA 치료 센터 ### 1. **일산ABA행동발달연구소** 주소: 고양시 일산동구 장항동 749번지 코오롱 레이크 폴리스 2차 A동 506호 상담이나 더 자세한 정보가 필요하신 경우 문의할 수 있습니다 . 연구소장 김은경은 국제공인행동분석가(QBA) 자격을 보유 하고 있습니다. ### ABA 치료 정보 ABA(Applied Behavior Analysis) 치료는 과학적 원리에 "
+    },
+    {
+      "n": 3,
+      "prompt": "일산서구 발달치료 센터 추천해줘",
+      "ok": true,
+      "ourMention": false,
+      "ourCited": false,
+      "citedUrls": [],
+      "answerSnippet": "죄송하지만, 저는 실시간 정보를 검색할 수 없는 상황에서 현재 일산서구의 발달치료 센터에 대한 정확한 정보를 제공하기 어렵습니다. 다만 일산서구의 발달치료 센터를 찾기 위해 다음과 같은 방법을 추천드립니다: 1. **온라인 검색**: 네이버 지도, 구글 지도에서 \"일산서구 발달치료\", \"일산서구 아동발달센터\" 등으로 검색하면 위치, 전화번호, 후기 등을 확인할 수 있습니다. 2. **고양시 보건소**: 고양시 일산서구 보건소에 문의하면 지역 내 등록된 발달치료 센터 정보를 제공받을 수 있습니다. 3. **장애인복지 관련 기관**: "
+    },
+    {
+      "n": 4,
+      "prompt": "일산에서 자폐 아동 치료 잘하는 곳 알려줘",
+      "ok": true,
+      "ourMention": false,
+      "ourCited": false,
+      "citedUrls": [
+        {
+          "url": "https://www.snubh.org/dh/dcd22",
+          "title": "발달·자폐·사회성 클리닉 | 분당서울대학교병원"
+        },
+        {
+          "url": "https://www.ncmh.go.kr/medical/html/content.do?depth=cr&menu_cd=03_02_01_01",
+          "title": "소개 < 주간치료센터 < 어린이·청소년 발달 재활 < 재활 및 전문클리닉 | 국립정신건강센터 의료부"
+        },
+        {
+          "url": "https://nursingcollege.yonsei.ac.kr/sev-children/department/center-clinic/autism.do",
+          "title": "클리닉 | 세브란스 어린이병원"
+        },
+        {
+          "url": "https://www.amc.seoul.kr/asan/healthinfo/disease/diseaseDetail.do?contentId=31896",
+          "title": "자폐증 / 자폐 스펙트럼 장애(Autism spectrum disorder) | 질환백과 | 의료정보 | 건강정보 | 서울아산병원"
+        },
+        {
+          "url": "http://child.amc.seoul.kr/asan/depts/child/K/childContent.do?menuId=4384&page=Clinic12",
+          "title": "클리닉 | 진료과/센터/클리닉 | 어린이병원 | 서울아산병원"
+        },
+        {
+          "url": "https://www.snubh.org/dh/main/index.do?DP_CD=DCD22&MENU_ID=003004",
+          "title": "발달·자폐·사회성클리닉 > 전문 클리닉 > 발달·자폐·사회성 클리닉 | 분당서울대학교병원"
+        },
+        {
+          "url": "https://child.snuh.org/m/reservation/clinic/KC224/clinicInfo.do",
+          "title": "센터/클리닉 | 진료예약 | 서울대학교어린이병원"
+        },
+        {
+          "url": "http://k-clinic.co.kr/children-youth/autism-intellectual-disorder/",
+          "title": "공감정신건강의학과의원 » 자폐/지적장애"
+        }
+      ],
+      "answerSnippet": "일산에서 자폐 아동 치료를 잘하는 곳에 대해 검색해 드리겠습니다. 검색 결과에서 일산 지역의 구체적인 센터 정보가 제한적이네요. 그래도 검색된 정보를 정리해드리겠습니다: ## 일산 지역 자폐 아동 치료 센터 검색 결과에 발견된 일산 지역 센터: - **그린아동발달센터**: 일산 지역에 위치하며, 전화 031-396-7456으로 문의 가능합니다. 발달재활바우처, 심리지원바우처 등 다양한 지원금 사용이 가능합니다. ## 추천할 만한 주변 지역 병원 만약 일산에서 선택지가 충분하지 않다면, 주변 지역의 전문 병원들을 고려해볼 수 있습니다"
+    },
+    {
+      "n": 5,
+      "prompt": "일산 ABA 치료 받을 수 있는 센터 알려줘",
+      "ok": true,
+      "ourMention": false,
+      "ourCited": false,
+      "citedUrls": [
+        {
+          "url": "https://dmh.yonsei.ac.kr/47928512285466546041-5282447308-4459244288-48143-4428847144-493245106053944-48148471964403244592.html",
+          "title": "문제행동 치료 기관 및 관련 사이트 바로가기 - DMH LAB"
+        },
+        {
+          "url": "https://findcenter.kr/",
+          "title": "FindABA · ABA 센터 찾기"
+        },
+        {
+          "url": "https://www.aesolacademy.org/aba",
+          "title": "1:1 심층 Aba 조기 및 개별치료 | 에이솔 아카데미 | 서울특별시"
+        },
+        {
+          "url": "http://abakids.co.kr/",
+          "title": "에이비에이키즈(ABAkids)"
+        },
+        {
+          "url": "https://mio100.com/aba/",
+          "title": "ABA 치료 - 미오백아동발달상담센터"
+        },
+        {
+          "url": "http://ilsanaba.com/",
+          "title": "일산ABA행동발달연구소"
+        },
+        {
+          "url": "https://www.bluewhaleaba.center/",
+          "title": "블루웨일 ABA 치료기관"
+        }
+      ],
+      "answerSnippet": "일산의 ABA(응용행동분석) 치료 센터에 대한 정보를 검색해드리겠습니다. 좋은 소식입니다! 일산 지역에서 ABA 치료를 받을 수 있는 센터가 있습니다. ## 일산 ABA 센터 **일산 ABA 행동발달 연구소**는 발달장애 아동 및 학습장애 아동을 위한 곳으로 응용행동분석 및 긍정적 행동지원을 기반으로 한 치료 교육 서비스를 제공하며 양육자참관이 가능하여 보다 집중적이고 안전한 교육을 제공합니다 . - **웹사이트**: ilsanaba.com - 전문적인 ABA 기법을 통해 아동의 개별적 필요에 맞춘 맞춤형 치료 및 교육 계획을 수립"
+    },
+    {
+      "n": 6,
+      "prompt": "고양시 자폐스펙트럼 조기중재 기관 알려줘",
+      "ok": true,
+      "ourMention": false,
+      "ourCited": false,
+      "citedUrls": [
+        {
+          "url": "https://www.goyang.go.kr/edu/M000046/S001/conts.do",
+          "title": "경계선 지능인 평생교육 : 고양시 평생학습포털(고양 평생학습, 고양평생학습, 고양시평생학습)"
+        },
+        {
+          "url": "https://www.amc.seoul.kr/asan/healthinfo/disease/diseaseDetail.do?contentId=31896",
+          "title": "자폐증 / 자폐 스펙트럼 장애(Autism spectrum disorder) | 질환백과 | 의료정보 | 건강정보 | 서울아산병원"
+        },
+        {
+          "url": "https://www.snubh.org/dh/dcd22",
+          "title": "발달·자폐·사회성 클리닉 | 분당서울대학교병원"
+        },
+        {
+          "url": "https://www.mentalhealth.or.kr/Community/Clinic/Files/%EA%B3%A0%EC%96%91%EC%A0%95%EC%8B%A02025-%EA%B8%B0%ED%9A%8D058(%EB%B6%99%EC%9E%841.%205%EC%9B%94%20%EC%9D%BC%EC%A0%95%EA%B3%84%ED%9A%8D).pdf",
+          "title": "고양시정신건강복지센터 2025년 5월 일정 1) 연중일정 사업구분 사업명 세부내용 집중사례 관리사업 네트워크 ○ 1:1 주치의 간담회"
+        },
+        {
+          "url": "https://www.goegy.kr/goegy/ssm/scholStts/selectScholSttsList.do?spcClass=Y&mi=20810",
+          "title": "특수학급설치교 < 관내교육기관 | 고양교육지원청"
+        },
+        {
+          "url": "https://child.snuh.org/m/reservation/clinic/KC224/clinicInfo.do",
+          "title": "센터/클리닉 | 진료예약 | 서울대학교어린이병원"
+        },
+        {
+          "url": "https://www.dhcs.ca.gov/ko/services/medi-cal/Pages/BehavioralHealthTreatment.aspx",
+          "title": "행동 건강 치료 | 자폐 스펙트럼 장애 아동​​ - DHCS"
+        },
+        {
+          "url": "https://floortimekorea.com/autism/",
+          "title": "자폐스펙트럼 - 한국플로어타임센터"
+        }
+      ],
+      "answerSnippet": "저는 한국의 지역 정보를 검색하여 고양시의 자폐스펙트럼 조기중재 기관에 대해 알려드리겠습니다. 검색 결과에 고양시의 구체적인 자폐스펙트럼 조기중재 기관 목록이 충분하지 않아, 더 정확한 정보를 제공하기 위해 다음과 같은 방법을 추천드립니다: 1. **고양시청 복지정책과** - 장애인 복지 서비스 관련 정보 2. **고양시정신건강복지센터** - 정신건강 관련 서비스 제공 3. **고양교육지원청** - 특수교육 및 발달장애 관련 서비스 4. **아이사랑 보육포털** (iseoul.seoul.go.kr) - 보육 및 발달지원 서비스 5."
+    },
+    {
+      "n": 7,
+      "prompt": "일산에서 무발화 아이 ABA 치료 가능한 곳?",
+      "ok": true,
+      "ourMention": false,
+      "ourCited": false,
+      "citedUrls": [
+        {
+          "url": "https://product.kyobobook.co.kr/detail/S000001823271",
+          "title": "집에서 하는 ABA 치료 프로그램 2 | 이노우에 마사히코 - 교보문고"
+        },
+        {
+          "url": "https://www.instagram.com/p/DOA4zDYkn9l/",
+          "title": "예전..장애인복지관투어시 눈여겨봤던 AAC카드.. 자폐아동 , ..."
+        },
+        {
+          "url": "http://www.ansanchild.co.kr/board/bbs/content.php?co_id=program_8",
+          "title": "ABA(행동수정)"
+        },
+        {
+          "url": "https://www.imomcenter.com/community/notice/49",
+          "title": "ABA언어 조정사항 (4월부터)"
+        },
+        {
+          "url": "https://mio100.com/aba/",
+          "title": "ABA 치료 - 미오백아동발달상담센터"
+        },
+        {
+          "url": "http://ilsanaba.com/",
+          "title": "일산ABA행동발달연구소"
+        },
+        {
+          "url": "http://busanaba.com/",
+          "title": "부산ABA아동발달연구소"
+        },
+        {
+          "url": "http://www.autismpartnershipkr.com/ko/service/our-method-and-approach-aba/",
+          "title": "Autismpartnershipkr"
+        }
+      ],
+      "answerSnippet": "일산에서 무발화 아이를 위한 ABA(응용행동분석) 치료를 제공하는 기관을 찾기 위해 검색해드리겠습니다. 좋은 소식입니다! 일산에서 무발화 아이를 위한 ABA 치료를 제공하는 기관이 있습니다. ## 일산 ABA 행동발달 연구소 일산 ABA 행동발달 연구소는 무발화 아동(말을 하지 않거나 최소한의 언어를 사용하는 아동)을 포함한 다양한 발달장애 아동을 대상으로 치료 및 중재를 제공합니다. **주요 정보:** - 연구소장: 김은경 (국제공인행동분석가 QBA, VB-MAPP 모듈 수료) - 웹사이트: http://ilsanaba.com/ "
+    },
+    {
+      "n": 8,
+      "prompt": "일산 문제행동 치료 센터 추천",
+      "ok": true,
+      "ourMention": false,
+      "ourCited": false,
+      "citedUrls": [
+        {
+          "url": "https://ilsan.chamc.co.kr/",
+          "title": "일산차병원"
+        },
+        {
+          "url": "https://www.nhimc.or.kr/dept/profList.do?deptNo=11",
+          "title": "국민건강보험 일산병원"
+        },
+        {
+          "url": "https://www.goyang.go.kr/health/health02/health02_8/health02_8_1.jsp",
+          "title": "정신건강복지센터 : 보건소 > 사업안내 > 정신건강증진 > 정신건강복지센터"
+        },
+        {
+          "url": "https://www.mentalhealth.or.kr/AreaCenter/AC01.asp",
+          "title": "경기도정신건강복지센터"
+        },
+        {
+          "url": "https://center.mindcafe.co.kr/ilsan",
+          "title": "마인드카페 일산 심리상담센터 | 마인드카페 심리상담센터"
+        },
+        {
+          "url": "https://www.modoodoc.com/hospitals/category-search?city=%EA%B2%BD%EA%B8%B0%EB%8F%84&small_city=%EA%B3%A0%EC%96%91%EC%8B%9C&district=%EC%9D%BC%EC%82%B0%EB%8F%99%EA%B5%AC&new_dong=%EC%8B%9D%EC%82%AC%EB%8F%99&major=%EC%A0%95%EC%8B%A0%EA%B1%B4%EA%B0%95%EC%9D%98%ED%95%99%EA%B3%BC&tc=%EA%B3%B5%ED%99%A9%EC%9E%A5%EC%95%A0&sub_tc=%EA%B3%B5%ED%99%A9%EC%9E%A5%EC%95%A0+%EC%83%81%EB%8B%B4/%EA%B2%80%EC%82%AC&sort=many_visited&c_lat=37.49788537524865&c_lon=127.0276126686373&tab=&previous_search_query=%EC%8B%9D%EC%82%AC%20%EC%A0%95%EC%8B%A0%EA%B1%B4%EA%B0%95%EC%9D%98%ED%95%99%EA%B3%BC%20%EA%B3%B5%ED%99%A9%EC%9E%A5%EC%95%A0%20%EC%83%81%EB%8B%B4/%EA%B2%80%EC%82%AC&previous_region_type=%EC%9D%8D/%EB%A9%B4/%EB%8F%99",
+          "title": "정신건강의학과 > 공황장애 상담/검사 > 경기도 일산동구 고양시 식사동 TOP10 (2025) | 모두닥"
+        },
+        {
+          "url": "http://www.irumclinic.com/",
+          "title": "연세이룸 정신건강의학과"
+        },
+        {
+          "url": "https://www.ilsan21.com/clinic/rehabilitation.html",
+          "title": "일산21세기병원"
+        }
+      ],
+      "answerSnippet": "일산 지역의 문제행동 치료 센터에 대한 정보를 검색해드리겠습니다. 일산 지역의 문제행동 치료 센터를 찾고 계신다면, 다음과 같은 시설들을 참고하시기 바랍니다: ## 추천 센터 ### 1. **연세이룸 정신건강의학과** 경기 고양시 일산동구 정발산로 47 웅신아트 3층에 위치 하며, 발달·놀이치료, 인지·학습치료, 언어치료, 사회성치료, 감각통합치료, 상담치료, 뉴로피드백, 작업기억력훈련, 틱 조절훈련, 분노조절, 자폐스펙트럼 그룹치료 등의 프로그램을 제공 합니다. 평일 오전 10시부터 오후 7시까지 진료 합니다. ### 2. **마"
+    },
+    {
+      "n": 9,
+      "prompt": "파주 운정에서 갈 만한 ABA 센터 있나요?",
+      "ok": true,
+      "ourMention": false,
+      "ourCited": false,
+      "citedUrls": [
+        {
+          "url": "https://dmh.yonsei.ac.kr/47928512285466546041-5282447308-4459244288-48143-4428847144-493245106053944-48148471964403244592.html",
+          "title": "문제행동 치료 기관 및 관련 사이트 바로가기 - DMH LAB"
+        },
+        {
+          "url": "https://www.paju.go.kr/www/intropaju/intropaju_05/intropaju_05_13/intropaju_05_13_03.jsp",
+          "title": "스포츠센터시설"
+        },
+        {
+          "url": "https://www.instagram.com/explore/locations/398326185/paju-unjeongseupocheusenteo/",
+          "title": "파주 운정스포츠센터"
+        },
+        {
+          "url": "https://findcenter.kr/",
+          "title": "FindABA · ABA 센터 찾기"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/Korean_Cultural_Center,_Nigeria",
+          "title": "Korean Cultural Center, Nigeria"
+        },
+        {
+          "url": "https://pajuutc.or.kr/ouz/fclty/culture/status/contents.do?sisul=3",
+          "title": "파주도시관광공사"
+        },
+        {
+          "url": "https://www.unjeongjumin.co.kr/",
+          "title": "파주시 운정주민자치센터"
+        },
+        {
+          "url": "https://saiieum.com/center/dtl/567",
+          "title": "ABA Plus 아동발달연구소"
+        }
+      ],
+      "answerSnippet": "파주 운정 지역의 ABA 센터에 대한 최신 정보를 검색해드리겠습니다. 안타깝게도 검색 결과에서 파주 운정 지역에 위치한 ABA 센터에 대한 구체적인 정보를 찾기 어려웠습니다. 다만 ABA 센터를 찾기 위해 다음과 같은 방법을 추천드립니다: 1. **FindABA 웹사이트** (findcenter.kr) - ABA 센터 검색 포털로, 지역별 센터 정보를 확인할 수 있습니다. 정확한 위치는 각 센터에 문의하시는 것이 좋습니다. 2. **근처 지역 확인** - 파주 인근의 서울, 경기도 일산 등의 ABA 센터를 알아보는 것도 고려할 수 "
+    },
+    {
+      "n": 10,
+      "prompt": "김포에서 ABA 치료 가능한 곳 알려줘",
+      "ok": true,
+      "ourMention": false,
+      "ourCited": false,
+      "citedUrls": [
+        {
+          "url": "https://www.guroaba.co.kr/",
+          "title": "구로ABA아동발달연구소"
+        },
+        {
+          "url": "https://findcenter.kr/",
+          "title": "FindABA · ABA 센터 찾기"
+        },
+        {
+          "url": "https://www.aesolacademy.org/aba",
+          "title": "1:1 심층 Aba 조기 및 개별치료 | 에이솔 아카데미 | 서울특별시"
+        },
+        {
+          "url": "https://www.imomcenter.com/community/notice/49",
+          "title": "ABA언어 조정사항 (4월부터)"
+        },
+        {
+          "url": "https://godukskychild.com/77",
+          "title": "행동치료(ABA) - 고덕스카이인지학습클리닉_아동발달센터"
+        },
+        {
+          "url": "https://www.gimpohansol.com/",
+          "title": "한솔아동발달센터 김포점"
+        },
+        {
+          "url": "https://www.bluewhaleaba.center/",
+          "title": "블루웨일 ABA 치료기관"
+        },
+        {
+          "url": "http://www.autismpartnershipkr.com/ko/service/our-method-and-approach-aba/",
+          "title": "Autismpartnershipkr"
+        }
+      ],
+      "answerSnippet": "김포에서 ABA(응용행동분석) 치료를 제공하는 기관에 대해 검색해드리겠습니다. 검색 결과에서 김포의 ABA 치료 기관을 찾았습니다: ## 김포 지역 ABA 치료 기관 ** 한솔아동발달센터 김포점 ** - ABA조기교실, ABA개별치료, 행동중재치료를 제공 하고 있습니다. - 보건복지부 바우처등록기관으로 발달재활서비스 등을 등록 되어 있습니다. 더 정확한 위치, 연락처, 상담 등의 자세한 정보는 한솔아동발달센터 김포점의 웹사이트나 전화로 직접 문의하시는 것을 추천합니다. 또한 ABA 센터를 검색할 수 있는 **FindABA** (fi"
+    },
+    {
+      "n": 11,
+      "prompt": "일산 발달지연 아이 치료센터 추천해줘",
+      "ok": true,
+      "ourMention": false,
+      "ourCited": false,
+      "citedUrls": [
+        {
+          "url": "https://childhosp.seoul.go.kr/cando/treatment_program",
+          "title": "발달센터 치료프로그램 < 어린이병원 < 서울특별시 - 서울시"
+        },
+        {
+          "url": "https://www.nhimc.or.kr/medicalinfo/clinic/clinic_develop.do",
+          "title": "발달지연클리닉 < 클리닉안내 < 진료과/센터/클리닉 < 국민건강보험 일산병원"
+        },
+        {
+          "url": "https://www.nhimc.or.kr/dept/profList.do?deptNo=11",
+          "title": "국민건강보험 일산병원"
+        },
+        {
+          "url": "https://gangnam.chamc.co.kr/treatment/list/development/introduction.cha",
+          "title": "이른둥이발달증진클리닉 ㅣ 강남차병원"
+        },
+        {
+          "url": "https://child.snuh.org/reservation/clinic/KC012/clinicInfo.do",
+          "title": "발달장애 클리닉 - 센터/클리닉 | 진료예약 | 서울대학교어린이병원"
+        },
+        {
+          "url": "https://www.nhis.or.kr/nbinfo/wbhfaa06200m28.do?mode=view&articleNo=11001124&title=%EC%8B%A0%EA%B2%BD%EB%B0%9C%EB%8B%AC%EC%A4%91%EC%9E%AC%EC%B9%98%EB%A3%8C",
+          "title": "신경발달중재치료 | 비급여 정보 포털"
+        },
+        {
+          "url": "https://center.mindcafe.co.kr/ilsan",
+          "title": "마인드카페 일산 심리상담센터 | 마인드카페 심리상담센터"
+        },
+        {
+          "url": "http://www.greencenta.com/",
+          "title": "그린아동발달센터"
+        }
+      ],
+      "answerSnippet": "일산의 발달지연 아이 치료센터 정보를 검색해드리겠습니다. 일산의 발달지연 아이 치료센터 추천을 몇 가지 소개해드립니다: ## 주요 치료센터 ### 1. **국민건강보험 일산병원** 발달지연 클리닉은 일산병원이 국내 최초로 시행하는 소아신경학, 소아정신의학, 소아재활의학 전문의들이 동시에 통합하여 진료하는 첨단 진료 시스템 입니다. - 위치: 경기도 고양시 일산동구 일산로 100 - 대표전화: 1577-0013 ### 2. **마인드카페 일산 심리상담센터** 발달지연, 사회성발달, 아동상담 등을 전문으로 하는 센터 입니다. - 위치:"
+    },
+    {
+      "n": 12,
+      "prompt": "고양시에서 ABA 조기교실 운영하는 곳?",
+      "ok": true,
+      "ourMention": false,
+      "ourCited": false,
+      "citedUrls": [
+        {
+          "url": "https://community.bu.ac.kr/buaba/index.do",
+          "title": "백석ABA센터"
+        },
+        {
+          "url": "https://www.childportal.co.kr/board/bbs/board.php?bo_table=job&wr_id=22118&sfl=wr_subject%7C%7Cwr_content&stx=%EC%9E%91%EC%97%85",
+          "title": "구로ABA아동발달연구소 ABA 개별 치료사, ABA 조기교실 ..."
+        },
+        {
+          "url": "https://www.aesolacademy.org/aba",
+          "title": "1:1 심층 Aba 조기 및 개별치료 | 에이솔 아카데미 | 서울특별시"
+        },
+        {
+          "url": "https://www.themoonaba.com/",
+          "title": "더문ABA연구소 - 조기교실, PBS교실, 함성공간, 톡북(Talk Book)"
+        },
+        {
+          "url": "https://adhd119.com/%EC%A1%B0%EA%B8%B0%EA%B5%90%EC%8B%A4",
+          "title": "조기교실"
+        },
+        {
+          "url": "https://www.simplestepaba.com/",
+          "title": "발달자폐아동전문기관 | SimplestepABA (심플스텝ABA)"
+        },
+        {
+          "url": "https://www.joyabacenters.com/%EC%86%8C%EA%B0%9C",
+          "title": "조이ABA센터 - 소개"
+        }
+      ],
+      "answerSnippet": "고양시의 ABA 조기교실 운영 기관을 찾기 위해 검색하겠습니다. 검색 결과에서 고양시 지역에 구체적으로 명시된 ABA 조기교실이 발견되지 않았습니다. 다만 몇 가지 참고할 만한 기관들이 있습니다: **서울 지역 기관들:** - 백석ABA센터에서 조기교실 운영 - 더문ABA연구소 - ABA 기반의 특수교육 시스템을 적용하고 있는 조기교실 전문기관 - SimplestepABA - 에이솔 아카데미 (서울) - 조이ABA센터 고양시 지역의 구체적인 ABA 조기교실을 찾으시려면: 1. **지역 발달장애 지원센터**에 문의 2. **고양시청*"
+    },
+    {
+      "n": 13,
+      "prompt": "일산에 BCBA 자격 치료사가 있는 ABA 센터 있어?",
+      "ok": true,
+      "ourMention": false,
+      "ourCited": false,
+      "citedUrls": [
+        {
+          "url": "https://www.saramin.co.kr/zf_user/jobs/view?rec_idx=34635771",
+          "title": "[희망ABA] BCBA수련시간 인정, ABA개별방문치료 치료사 채용합니다 - 사람인"
+        },
+        {
+          "url": "https://m.yes24.com/goods/detail/60760038",
+          "title": "집에서 하는 ABA 치료 프로그램 | 이노우에 마사히코 | 예문아카이브 - 예스24"
+        },
+        {
+          "url": "https://www.aesolacademy.org/aba",
+          "title": "1:1 심층 Aba 조기 및 개별치료 | 에이솔 아카데미 | 서울특별시"
+        },
+        {
+          "url": "http://abakids.co.kr/",
+          "title": "에이비에이키즈(ABAkids)"
+        },
+        {
+          "url": "https://smilingkidsaba.com/therapists",
+          "title": "치료사 6인 | 송파 ABA 웃는아이 아동발달센터 (BCBA 원장)"
+        },
+        {
+          "url": "https://www.bluewhaleaba.center/",
+          "title": "블루웨일 ABA 치료기관"
+        },
+        {
+          "url": "http://ilsanaba.com/",
+          "title": "일산ABA행동발달연구소"
+        },
+        {
+          "url": "http://koreaaba.com/93",
+          "title": "한국ABA행동발달연구소"
+        }
+      ],
+      "answerSnippet": "일산의 ABA 센터 정보를 검색해드리겠습니다. 네, 일산에 BCBA 자격 치료사가 있는 ABA 센터가 있습니다. 일산 ABA 행동발달 연구소는 자폐 스펙트럼 장애 아동의 교육과 행동 수정을 위해 실질적인 어드바이스와 상담을 제공하며, 전문적인 ABA 기법을 통해 아동의 개별적 필요에 맞춘 맞춤형 치료 및 교육 계획을 수립하고 실행하고 있습니다. 더 자세한 정보나 상담을 원하신다면 일산 ABA 행동발달 연구소 웹사이트(ilsanaba.com)를 방문하시거나 직접 연락하셔서 BCBA 자격 여부와 현재 가능한 프로그램에 대해 확인하시기를"
+    },
+    {
+      "n": 14,
+      "prompt": "정지은일산ABA는 어떤 곳이야?",
+      "ok": true,
+      "ourMention": true,
+      "ourCited": false,
+      "citedUrls": [
+        {
+          "url": "https://www.saramin.co.kr/zf_user/jobs/list/job-category?cat_kewd=482",
+          "title": "인지치료사 취업 | 직업별 채용정보 - 사람인"
+        },
+        {
+          "url": "https://seenthis.kr/page/index?b_no=1230479211&lang=en",
+          "title": "Company Company Info (Biz No: 1230479211) - SeenThis"
+        },
+        {
+          "url": "https://www.byeongwonjob.com/cms/s01_v.php?idx=519694",
+          "title": "솔튼병원에서 능력있는 병동3교... ( 채용시까지 ) | 병원잡 채용정보 - 병원의 모든잡 병원잡 byeongwonjob.com"
+        },
+        {
+          "url": "http://ilsanaba.com/",
+          "title": "일산ABA행동발달연구소"
+        },
+        {
+          "url": "https://m.byeongwonjob.com/recruit/list.php?search_type=&sort=1&job_sphere=0807&page=211",
+          "title": "병원잡 채용정보 - 병원구인구직은 병원잡 byeongwonjob.com"
+        },
+        {
+          "url": "https://www.seochoaba.com/en/%EC%B9%98%EB%A3%8C%EC%A7%84-%EC%86%8C%EA%B0%9C",
+          "title": "서초ABA 치료진 소개"
+        },
+        {
+          "url": "https://kr.soccerway.com/players/jung-eun-lee/151018",
+          "title": "정은 이정은 (화천KSPO) 통계"
+        },
+        {
+          "url": "https://brunch.co.kr/@sunofalice/follower",
+          "title": "이 작가를 구독하는 565명"
+        }
+      ],
+      "answerSnippet": "제가 해당 정보를 찾기 위해 검색해보겠습니다. 정지은일산ABA는 경기 고양시 일산서구에 위치한 곳으로, 조기교실 치료사를 모집하는 기관입니다. 작업치료사 등 치료사를 채용하고 있으며, 대기아동을 대상으로 하는 곳으로 보입니다. 구체적인 기관의 성격이나 운영 방식 등에 대한 더 자세한 정보는 검색 결과에서 찾기 어렵습니다. 더 자세히 알고 싶으시다면 직접 기관에 문의하시거나, \"일산ABA행동발달연구소\" 같은 관련 기관들의 웹사이트를 방문해보시는 것을 추천드립니다."
+    },
+    {
+      "n": 15,
+      "prompt": "일산에서 부모교육 하는 ABA 센터 알려줘",
+      "ok": true,
+      "ourMention": false,
+      "ourCited": false,
+      "citedUrls": [
+        {
+          "url": "https://dmh.yonsei.ac.kr/47928512285466546041-5282447308-4459244288-48143-4428847144-493245106053944-48148471964403244592.html",
+          "title": "문제행동 치료 기관 및 관련 사이트 바로가기 - DMH LAB"
+        },
+        {
+          "url": "https://www.woorimaum.org/kr/intro/aba.html",
+          "title": "ABA교육 < 사업소개 < 소개합니다"
+        },
+        {
+          "url": "https://findcenter.kr/",
+          "title": "FindABA · ABA 센터 찾기"
+        },
+        {
+          "url": "http://abakids.co.kr/",
+          "title": "에이비에이키즈(ABAkids)"
+        },
+        {
+          "url": "http://koreaaba.com/93",
+          "title": "한국ABA행동발달연구소"
+        },
+        {
+          "url": "https://www.happyaba.com/",
+          "title": "즐거운ABA아동발달연구소"
+        },
+        {
+          "url": "http://ilsanaba.com/",
+          "title": "일산ABA행동발달연구소"
+        },
+        {
+          "url": "https://www.abacareloop.com/",
+          "title": "ABA CareLoop HOME"
+        }
+      ],
+      "answerSnippet": "일산에서 부모교육을 하는 ABA(응용행동분석) 센터에 대한 정보를 찾아드리겠습니다. 일산에서 부모교육을 하는 ABA 센터를 찾으셨다면, 다음 정보가 도움이 될 것 같습니다: ## 일산 ABA 행동발달 연구소 부모 학습 상담 프로그램은 자폐 스펙트럼 장애 아동의 발달을 지원하고, 가족 전체가 함께 성장할 수 있도록 종합적인 교육과 지원을 제공합니다. **주소:** 고양시 일산동구 장항동 749 번지 코오롱 레이크 폴리스 2 차 A 동 506 호 **연락처:** 전화: 010-9113-7035 상담이나 더 자세한 정보가 필요하시면 언제"
+    },
+    {
+      "n": 16,
+      "prompt": "주엽역 근처 아동발달센터 추천",
+      "ok": true,
+      "ourMention": false,
+      "ourCited": false,
+      "citedUrls": [
+        {
+          "url": "https://iseoul.seoul.go.kr/portal/info/content.do?page=08101",
+          "title": "서울형 보육 > 서울아이발달지원센터 | 서울시 보육포털 서비스"
+        },
+        {
+          "url": "https://m.gimpo.go.kr/portal/contents.do?key=1338",
+          "title": "지역아동센터 현황 - 김포시청"
+        },
+        {
+          "url": "https://ephosp.seoul.go.kr/grow_center?pc=1",
+          "title": "어린이발달센터란? - 은평병원 - 서울시"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/Children%27s_Grand_Park_station",
+          "title": "Children%27s Grand Park station"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/Giheung_station",
+          "title": "Giheung station"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/Central_Park_station_(Incheon)",
+          "title": "Central Park station (Incheon)"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/Yeokgok_station",
+          "title": "Yeokgok station"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/Yeongtong_station",
+          "title": "Yeongtong station"
+        }
+      ],
+      "answerSnippet": "I'll search for information about child development centers near Jugyeop Station. 죄송하지만 검색 결과에서 주엽역 근처의 구체적인 아동발달센터 정보를 찾기가 어려웠습니다. 다만 일반적인 정보와 함께 더 효과적으로 센터를 찾는 방법을 제안해드리겠습니다: **주엽역 근처 아동발달센터를 찾는 방법:** 1. **지역 정보 포털 확인** - 네이버 지도, 카카오맵에서 \"주엽역 아동발달센터\" 또는 \"주엽역 아동심리센터\" 검색 - 은평구청 홈페이지에서 관련 시설 현황 조회 2. "
+    },
+    {
+      "n": 17,
+      "prompt": "일산 사회성 치료 그룹 프로그램 하는 곳",
+      "ok": true,
+      "ourMention": false,
+      "ourCited": false,
+      "citedUrls": [
+        {
+          "url": "https://m.cafe.daum.net/happych7/F964/593?listURI=%2Fhappych7%2FF964",
+          "title": "사회성 그룹치료 프로그램 - 장애의발견과 치료,교육&사회활동, 환경 - 행복이네마을"
+        },
+        {
+          "url": "https://www.kci.go.kr/kciportal/landing/article.kci?arti_id=ART001678111",
+          "title": "고등학생의 사회성 향상을 위한 집단상담 프로그램 개발"
+        },
+        {
+          "url": "https://psy.amc.seoul.kr/asan/depts/psy/K/content.do?menuId=879",
+          "title": "사회성증진 프로그램 | 특수프로그램 | 진료과소개 | 정신건강의학과 | 서울아산병원"
+        },
+        {
+          "url": "https://center.mindcafe.co.kr/ilsan",
+          "title": "마인드카페 일산 심리상담센터 | 마인드카페 심리상담센터"
+        },
+        {
+          "url": "https://valuetalk.kr/bbs/board.php?bo_table=group&wr_id=181",
+          "title": "가치톡홈티 | [인천] 사회성그룹 참여아동 모집합니다 16~18년생 > 사회성 그룹 게시판"
+        },
+        {
+          "url": "http://www.ilsanwelfare.or.kr/",
+          "title": "고양시일산종합사회복지관 | 지역주민과 함께하는 종합사회복지관"
+        },
+        {
+          "url": "http://joymind.co.kr/%EC%82%AC%ED%9A%8C%EC%84%B1%EC%A6%9D%EC%A7%84%ED%94%84%EB%A1%9C%EA%B7%B8%EB%9E%A8/",
+          "title": "사회성증진프로그램 - 조이심리상담 치료센터"
+        },
+        {
+          "url": "https://www.you-happy.co.kr/sub/sub08_04.php",
+          "title": "유해피심리상담센터"
+        }
+      ],
+      "answerSnippet": "일산 지역의 사회성 치료 그룹 프로그램을 찾아드리겠습니다. 일산 지역에서 사회성 치료 그룹 프로그램을 운영하는 곳들을 찾았습니다: ## 주요 센터 **1. 유해피심리상담센터 일산본점** - 사회성 그룹 치료 프로그램 운영 - 비슷한 연령대의 아동 2~3명이 짝을 지어 치료하며, 1:1 개별 치료에서 습득한 기술을 또래 친구들에게 적용해보는 방식으로 진행 **2. 고양시일산종합사회복지관** - 아동·청소년·가족 복지 및 다양한 복지 프로그램을 운영 **3. 마인드카페 일산심리상담센터** - 심리상담 및 그룹 프로그램 운영 더 구체적인"
+    },
+    {
+      "n": 18,
+      "prompt": "자폐 아이 ABA 치료, 고양 일산 어디가 좋아?",
+      "ok": true,
+      "ourMention": false,
+      "ourCited": false,
+      "citedUrls": [
+        {
+          "url": "https://dmh.yonsei.ac.kr/47928512285466546041-5282447308-4459244288-48143-4428847144-493245106053944-48148471964403244592.html",
+          "title": "문제행동 치료 기관 및 관련 사이트 바로가기 - DMH LAB"
+        },
+        {
+          "url": "https://child.snuh.org/m/reservation/clinic/KC224/clinicInfo.do",
+          "title": "센터/클리닉 | 진료예약 | 서울대학교어린이병원"
+        },
+        {
+          "url": "https://findcenter.kr/",
+          "title": "FindABA · ABA 센터 찾기"
+        },
+        {
+          "url": "http://abahome.org/자폐증과-aba치료/",
+          "title": "자폐증과 ABA치료 | ABA부모회"
+        },
+        {
+          "url": "http://abakids.co.kr/",
+          "title": "에이비에이키즈(ABAkids)"
+        },
+        {
+          "url": "http://ilsanaba.com/",
+          "title": "일산ABA행동발달연구소"
+        },
+        {
+          "url": "https://www.bluewhaleaba.center/",
+          "title": "블루웨일 ABA 치료기관"
+        }
+      ],
+      "answerSnippet": "고양 일산 지역의 ABA(응용행동분석) 치료 센터에 대한 최신 정보를 찾아드리겠습니다. 고양 일산 지역에서 자폐 아이의 ABA 치료를 찾으신다면 다음과 같은 정보가 도움이 될 수 있습니다: ## 일산 지역 ABA 센터 일산 ABA 행동발달 연구소는 자폐 스펙트럼 장애 및 발달지연 아동의 부모님을 위한 전문적인 부모 학습 상담 프로그램을 제공합니다 . (웹사이트: ilsanaba.com) ## ABA 치료 센터 선택 시 확인 사항 좋은 ABA 센터를 선택할 때는 다음을 확인하시면 좋습니다: - BACB(국제행동분석자격위원회) 공식 인"
+    },
+    {
+      "n": 19,
+      "prompt": "일산 아동 행동치료 전문기관 알려줘",
+      "ok": true,
+      "ourMention": false,
+      "ourCited": false,
+      "citedUrls": [
+        {
+          "url": "https://www.nhimc.or.kr/dept/profList.do?deptNo=11",
+          "title": "국민건강보험 일산병원"
+        },
+        {
+          "url": "https://center.mindcafe.co.kr/ilsan",
+          "title": "마인드카페 일산 심리상담센터 | 마인드카페 심리상담센터"
+        },
+        {
+          "url": "https://center.mindcafe.co.kr/child_center",
+          "title": "아동심리발달센터 | 마인드카페 심리상담센터"
+        },
+        {
+          "url": "http://www.isuntree.co.kr/",
+          "title": "해와나무아동발달센터 아동청소년심리상담센터"
+        },
+        {
+          "url": "https://www.kccp.kr/",
+          "title": "한국아동청소년심리상담센터"
+        },
+        {
+          "url": "https://www.dbnawoori.seoul.kr/",
+          "title": "서울동부아동보호전문기관"
+        },
+        {
+          "url": "http://www.adongclinic.co.kr/",
+          "title": "한국아동상담센터"
+        },
+        {
+          "url": "https://www.maum-center.com/",
+          "title": "일산 심리상담센터 | 아동 청소년 성인 상담 | 우리동네마음센터"
+        }
+      ],
+      "answerSnippet": "일산 지역의 아동 행동치료 전문기관 정보를 찾아드리겠습니다. 일산 지역의 아동 행동치료 전문기관들을 소개합니다: ## 주요 기관 **1. 마인드카페 일산센터** - 위치: 고양시 일산동구 정발산로 15 드림월드빌딩 4층 (3호선 정발산역 1번 출구 도보 10분) - 서비스: 아동상담, 청소년상담, 놀이치료, ADHD, 집중력, 학습장애, 기관부적응 등 **2. 우리동네마음센터** - 지역사회서비스 제공기관 (우리아이심리지원서비스, 아동비전형성지원서비스, 우리가족 통합심리지원서비스) - 연락처: 031-811-0618 **3. 청아정"
+    },
+    {
+      "n": 20,
+      "prompt": "경기 북부 ABA 전문 센터 추천해줘",
+      "ok": true,
+      "ourMention": false,
+      "ourCited": false,
+      "citedUrls": [
+        {
+          "url": "https://community.bu.ac.kr/buaba/index.do",
+          "title": "백석ABA센터"
+        },
+        {
+          "url": "https://www.facebook.com/p/%EA%B2%BD%EA%B8%B0%EB%8F%84%EB%B6%81%EB%B6%80%EC%9C%A1%EC%95%84%EC%A2%85%ED%95%A9%EC%A7%80%EC%9B%90%EC%84%BC%ED%84%B0-100064411732977/",
+          "title": "경기도북부육아종합지원센터 | Uijeongbu"
+        },
+        {
+          "url": "https://www.guroaba.co.kr/",
+          "title": "구로ABA아동발달연구소"
+        },
+        {
+          "url": "https://findcenter.kr/",
+          "title": "FindABA · ABA 센터 찾기"
+        },
+        {
+          "url": "https://www.aesolacademy.org/aba",
+          "title": "1:1 심층 Aba 조기 및 개별치료 | 에이솔 아카데미 | 서울특별시"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/Korean_Cultural_Center,_Nigeria",
+          "title": "Korean Cultural Center, Nigeria"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/Korea_National_Training_Center",
+          "title": "Korea National Training Center"
+        },
+        {
+          "url": "http://koreaaba.com/93",
+          "title": "한국ABA행동발달연구소"
+        }
+      ],
+      "answerSnippet": "경기 북부 ABA 전문 센터에 대한 최신 정보를 검색해드리겠습니다. 검색 결과를 바탕으로 경기 북부 지역의 ABA 전문 센터들을 소개해 드립니다: ## 주요 ABA 전문 센터 1. **백석ABA센터** - 응용행동분석을 기반으로 증거기반의 실제의 다양한 접근 방법을 사용하여 발달장애 아동과 일반아동을 대상으로 교육을 제공하는 기관 입니다. 2. **한국ABA행동발달연구소** - 국내 최초 전 생애주기 ABA 전문기관으로 영유아부터 성인까지 발달장애 당사자와 가족을 지원 하며, 경기도 구리, 남양주, 안산, 시흥, 동두천-양주, 연천"
+    }
+  ]
+}

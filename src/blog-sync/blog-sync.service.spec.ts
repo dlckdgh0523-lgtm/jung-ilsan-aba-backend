@@ -85,6 +85,7 @@ function makeService(overrides: Partial<Record<string, unknown>> = {}) {
       Promise.resolve({ id: where.id, title: '글', publishedAt: new Date() }),
     );
 
+  const geoReview = { active: false, analyzeAndStore: jest.fn().mockResolvedValue(undefined) };
   const service = new BlogSyncService(
     prisma as never,
     rss as never,
@@ -94,6 +95,7 @@ function makeService(overrides: Partial<Record<string, unknown>> = {}) {
     realtime as never,
     reviews as never,
     alimtalk as never,
+    geoReview as never,
     transformer as never,
     config as never,
   );

@@ -5,7 +5,8 @@ import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended'
 
 export default tseslint.config(
   {
-    ignores: ['dist', 'node_modules', 'prisma/migrations'],
+    // scripts/는 tsconfig 프로젝트 밖의 단독 실행 스크립트 — typed-lint 대상에서 제외
+    ignores: ['dist', 'node_modules', 'prisma/migrations', 'scripts'],
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommended,

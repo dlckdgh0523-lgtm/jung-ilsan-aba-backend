@@ -28,6 +28,7 @@ import { TagsModule } from './tags/tags.module';
 import { FaqsModule } from './faqs/faqs.module';
 import { SeoModule } from './seo/seo.module';
 import { BlogSyncModule } from './blog-sync/blog-sync.module';
+import { BotVisitsModule } from './bot-visits/bot-visits.module';
 
 @Module({
   imports: [
@@ -62,6 +63,7 @@ import { BlogSyncModule } from './blog-sync/blog-sync.module';
     FaqsModule,
     SeoModule,
     BlogSyncModule,
+    BotVisitsModule,
   ],
   controllers: [HealthController],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
