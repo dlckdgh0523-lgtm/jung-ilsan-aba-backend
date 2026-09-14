@@ -34,6 +34,33 @@ export interface AppConfig {
     since: string;
     fetchTimeoutMs: number;
   };
+  /** Public origin of THIS API (review links in alimtalk messages point here). */
+  apiPublicBase: string;
+  reviewToken: {
+    /** Pepper mixed into the token hash. Optional but recommended (32+ random chars). */
+    secret: string;
+    ttlDays: number;
+  };
+  alimtalk: {
+    enabled: boolean;
+    provider: string;
+    apiKey: string;
+    apiSecret: string;
+    /** 카카오 발신프로필 키 (솔라피 pfId). */
+    senderKey: string;
+    /** 승인 요청 템플릿 코드 (딜러사 심사 통과 후 발급). */
+    templateReview: string;
+    /** 수신 번호 목록 (하이픈 없이). */
+    recipients: string[];
+    /** true면 알림톡 실패 시 SMS/LMS 대체 발송 (딜러사 기능, 발신번호 등록 필요). v1은 끔. */
+    fallbackSms: boolean;
+  };
+  llm: {
+    enabled: boolean;
+    provider: string;
+    apiKey: string;
+    model: string;
+  };
 }
 
 const toInt = (v: string | undefined, fallback: number): number => {
@@ -103,5 +130,26 @@ export default (): AppConfig => ({
     maxPerRun: toInt(process.env.BLOG_SYNC_MAX_PER_RUN, 5),
     since: process.env.BLOG_SYNC_SINCE ?? '',
     fetchTimeoutMs: toInt(process.env.BLOG_SYNC_FETCH_TIMEOUT_MS, 15000),
+  },
+  apiPublicBase: (process.env.API_PUBLIC_BASE ?? '').replace(/\/+$/, ''),
+  reviewToken: {
+    secret: process.env.REVIEW_TOKEN_SECRET ?? '',
+    ttlDays: toInt(process.env.REVIEW_TOKEN_TTL_DAYS, 7),
+  },
+  alimtalk: {
+    enabled: process.env.ALIMTALK_ENABLED === 'true',
+    provider: process.env.ALIMTALK_PROVIDER ?? 'solapi',
+    apiKey: process.env.ALIMTALK_API_KEY ?? '',
+    apiSecret: process.env.ALIMTALK_API_SECRET ?? '',
+    senderKey: process.env.ALIMTALK_SENDER_KEY ?? '',
+    templateReview: process.env.ALIMTALK_TEMPLATE_REVIEW ?? '',
+    recipients: toList(process.env.ALIMTALK_RECIPIENTS),
+    fallbackSms: process.env.ALIMTALK_FALLBACK_SMS === 'true',
+  },
+  llm: {
+    enabled: process.env.LLM_ENABLED === 'true',
+    provider: process.env.LLM_PROVIDER ?? 'anthropic',
+    apiKey: process.env.LLM_API_KEY ?? '',
+    model: process.env.LLM_MODEL ?? 'claude-haiku-4-5',
   },
 });

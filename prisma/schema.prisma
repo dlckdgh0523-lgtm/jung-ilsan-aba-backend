@@ -194,6 +194,7 @@ model BlogSyncRun {
   finishedAt DateTime? @map("finished_at")
   status     String // running | ok | error
   fetched    Int       @default(0) // RSS items seen
+  notified   Int       @default(0) // review alimtalks delivered (≥1 recipient)
   created    Int       @default(0) // notices created this run
   skipped    Int       @default(0) // cutoff / category / duplicate skips
   error      String?
@@ -201,6 +202,28 @@ model BlogSyncRun {
 
   @@index([startedAt])
   @@map("blog_sync_runs")
+}
+
+// One review link per synced article: the director opens it from the alimtalk,
+// previews the draft, and publishes/holds — no login, no admin page.
+// Only the SHA-256 hash of the link token is stored; the token itself lives
+// nowhere but the sent message.
+model ArticleReview {
+  id                 String    @id @default(cuid())
+  articleId          String    @unique @map("article_id")
+  article            Article   @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  tokenHash          String    @unique @map("token_hash")
+  summary            String? // LLM 1-2 sentence summary shown in the alimtalk
+  expiresAt          DateTime  @map("expires_at")
+  decidedAt          DateTime? @map("decided_at")
+  decision           String? // publish | hold
+  decidedVia         String?   @map("decided_via") // kakao-link | admin
+  notifiedAt         DateTime? @map("notified_at")
+  notifyError        String?   @map("notify_error")
+  providerMessageIds Json      @default("[]") @map("provider_message_ids") // [{ to, id, status }]
+  createdAt          DateTime  @default(now()) @map("created_at")
+
+  @@map("article_reviews")
 }
 
 model GalleryItem {
@@ -328,7 +351,10 @@ model Article {
   // the same sourceUrl is never re-imported.
   sourceUrl          String?          @unique @map("source_url")
   sourceId           String?          @map("source_id") // Naver logNo
+  // Original blog title (title holds the LLM-cleaned one; review page can restore this).
+  sourceTitle        String?          @map("source_title")
   syncedAt           DateTime?        @map("synced_at")
+  review             ArticleReview?
   views              Int              @default(0)
   order              Int              @default(0)
   visible            Boolean          @default(true)

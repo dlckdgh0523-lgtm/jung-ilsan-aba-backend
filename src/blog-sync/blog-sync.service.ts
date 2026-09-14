@@ -1,6 +1,7 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { BlogSyncRun } from '@prisma/client';
+import { AlimtalkService } from '../alimtalk/alimtalk.service';
 import { AppException } from '../common/exceptions/app.exception';
 import type { AppConfig } from '../config/configuration';
 import { ArticlesService, type ArticleView } from '../articles/articles.service';
@@ -13,6 +14,7 @@ import { normalizeNoticeHtml } from './html-normalizer';
 import { ImageMirrorService } from './image-mirror.service';
 import { NaverPostFetcher } from './naver-post.fetcher';
 import { NaverRssClient } from './naver-rss.client';
+import { ReviewService } from './review/review.service';
 
 /** DB column is TEXT (unbounded); this is a deliberate product cap, not a DTO one. */
 const BODY_MAX_CHARS = 60000;
@@ -27,6 +29,10 @@ export interface SyncSummary {
   skipped: number;
   /** Eligible but beyond maxPerRun — picked up by the next run. */
   deferred: number;
+  /** Review alimtalks that reached at least one recipient. */
+  notified: number;
+  /** Articles created fine but whose alimtalk failed — resend via /blog-sync/notify/:id. */
+  notifyFailed: number;
   failures: string[];
   createdTitles: string[];
 }
@@ -44,6 +50,8 @@ export class BlogSyncService {
     private readonly mirror: ImageMirrorService,
     private readonly articles: ArticlesService,
     private readonly realtime: RealtimeService,
+    private readonly reviews: ReviewService,
+    private readonly alimtalk: AlimtalkService,
     @Inject(POST_TRANSFORMER) private readonly transformer: PostTransformer,
     private readonly config: ConfigService<AppConfig, true>,
   ) {}
@@ -114,14 +122,31 @@ export class BlogSyncService {
     const skipped = items.length - eligible.length;
     const failures: string[] = [];
     const created: ArticleView[] = [];
+    let notified = 0;
+    let notifyFailed = 0;
 
     for (const item of batch) {
+      let imported: { article: ArticleView; summary: string | null };
       try {
-        created.push(await this.importOne(item));
+        imported = await this.importOne(item);
+        created.push(imported.article);
       } catch (e) {
         const message = e instanceof Error ? e.message : String(e);
         this.logger.error(`글 가져오기 실패 (logNo=${item.logNo}): ${message}`);
         failures.push(`${item.logNo}: ${message}`);
+        continue;
+      }
+      // Review link + alimtalk AFTER the article is safely persisted: a dead
+      // dealer or DB hiccup here must never roll the article back.
+      try {
+        const sent = await this.notifyReview(imported.article.id, imported.summary);
+        if (sent === 'sent') notified += 1;
+        else if (sent === 'failed') notifyFailed += 1;
+      } catch (e) {
+        notifyFailed += 1;
+        this.logger.error(
+          `승인 알림 처리 실패 (articleId=${imported.article.id}): ${(e as Error).message}`,
+        );
       }
     }
 
@@ -133,6 +158,7 @@ export class BlogSyncService {
         fetched: items.length,
         created: created.length,
         skipped,
+        notified,
         error: failures.length > 0 ? failures.join('\n').slice(0, 2000) : null,
       },
     });
@@ -159,13 +185,18 @@ export class BlogSyncService {
       created: created.length,
       skipped,
       deferred: eligible.length - batch.length,
+      notified,
+      notifyFailed,
       failures,
       createdTitles: created.map((a) => a.title),
     };
   }
 
-  private async importOne(item: BlogRssItem): Promise<ArticleView> {
+  private async importOne(
+    item: BlogRssItem,
+  ): Promise<{ article: ArticleView; summary: string | null }> {
     const parsed = await this.fetcher.fetchPost(this.settings.blogId, item.logNo);
+    // LLM (when enabled) supplies a clean homepage title + summary; the body is untouched.
     const transformed = await this.transformer.transform(parsed, item);
     const { html: mirroredHtml, firstImageUrl } = await this.mirror.mirrorImages(
       transformed.bodyHtml,
@@ -173,13 +204,14 @@ export class BlogSyncService {
     const normalized = normalizeNoticeHtml(mirroredHtml);
     const { html: capped } = truncateHtmlBlocks(normalized, BODY_MAX_CHARS);
     const content = `${capped}\n<p><a href="${item.url}" target="_blank" rel="noopener noreferrer">네이버 블로그 원문 보기</a></p>`;
+    const title = transformed.cleanTitle?.trim() || item.title;
 
     // Always draft: an admin reviews (and may edit) then publishes — never auto-publish.
     // publishedAt is pre-set to the blog date so the public list keeps the real
     // chronology after publishing (ArticlesService keeps an existing publishedAt).
-    return this.articles.create({
-      title: item.title,
-      slug: await this.freeSlug(item),
+    const article = await this.articles.create({
+      title,
+      slug: await this.freeSlug({ ...item, title }),
       content,
       thumbnail: firstImageUrl,
       categoryId: await this.resolveCategoryId(item.category),
@@ -188,8 +220,27 @@ export class BlogSyncService {
       publishedAt: item.publishedAt,
       sourceUrl: item.url,
       sourceId: item.logNo,
+      sourceTitle: item.title,
       syncedAt: new Date(),
     });
+    return { article, summary: transformed.summary?.trim() || null };
+  }
+
+  /**
+   * Issue (or rotate) the review link and send the alimtalk. Used by the sync
+   * pipeline and by the admin resend endpoint. Returns how it went — never throws
+   * for send failures (those land on the review row + OpsAlert).
+   */
+  async notifyReview(
+    articleId: string,
+    summary?: string | null,
+  ): Promise<'sent' | 'failed' | 'disabled'> {
+    const article = await this.prisma.article.findUnique({ where: { id: articleId } });
+    if (!article) throw AppException.notFound('게시글을 찾을 수 없습니다');
+    const { token, review } = await this.reviews.issue(articleId, summary);
+    if (!this.alimtalk.enabled) return 'disabled';
+    const outcome = await this.alimtalk.sendReviewRequest(article, review, token);
+    return outcome.sent > 0 ? 'sent' : 'failed';
   }
 
   /** Slug from the title; on collision, the logNo makes it unique. */

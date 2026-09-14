@@ -29,6 +29,13 @@ export interface ParsedPost {
   imageUrls: string[];
   /** Module types that were dropped (video/sticker/map/file/…) — surfaced in preview. */
   dropped: string[];
+  /**
+   * Set by the LLM transformer: keyword-stuffed blog title → clean homepage
+   * title (≤25 chars). Absent on passthrough — the sync then keeps the RSS title.
+   */
+  cleanTitle?: string;
+  /** LLM 1-2 sentence summary (≤80 chars) for the review alimtalk. */
+  summary?: string;
 }
 
 /** DI token for the post transformer hook. */

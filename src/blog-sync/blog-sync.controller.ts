@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Param, Post } from '@nestjs/common';
 import { AdminOnly } from '../auth/decorators/admin-only.decorator';
 import { AppException } from '../common/exceptions/app.exception';
 import { BlogSyncService, SyncSummary } from './blog-sync.service';
@@ -26,6 +26,18 @@ export class BlogSyncController {
   @AdminOnly()
   status(): ReturnType<BlogSyncService['status']> {
     return this.service.status();
+  }
+
+  /**
+   * Re-send the review alimtalk for one article (rotates the link token, which
+   * invalidates the previously sent one). Also the way to notify about drafts
+   * created before alimtalk was connected. 409 once a decision exists.
+   */
+  @Post('notify/:articleId')
+  @AdminOnly()
+  @HttpCode(200)
+  async notify(@Param('articleId') articleId: string): Promise<{ result: string }> {
+    return { result: await this.service.notifyReview(articleId) };
   }
 
   /**

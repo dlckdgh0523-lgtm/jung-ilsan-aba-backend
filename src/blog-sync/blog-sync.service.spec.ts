@@ -54,8 +54,31 @@ function makeService(overrides: Partial<Record<string, unknown>> = {}) {
       ),
   };
   const realtime = { emitBlogSynced: jest.fn() };
-  const transformer = { transform: (p: ParsedPost) => p };
+  const reviews = {
+    issue: jest.fn().mockImplementation((articleId: string) =>
+      Promise.resolve({
+        token: 'tok-' + articleId,
+        review: { id: 'rev-' + articleId, expiresAt: new Date() },
+      }),
+    ),
+  };
+  const alimtalk = {
+    enabled: overrides.alimtalkEnabled ?? false,
+    sendReviewRequest: jest.fn().mockResolvedValue({ sent: 1, failed: 0, results: [] }),
+  };
+  const transformer = (overrides.transformer as {
+    transform: (p: ParsedPost, i: BlogRssItem) => ParsedPost;
+  }) ?? {
+    transform: (p: ParsedPost) => p,
+  };
   const config = { get: jest.fn().mockReturnValue(settings) };
+
+  // prisma.article.findUnique is used by notifyReview.
+  (prisma.article as Record<string, jest.Mock>).findUnique = jest
+    .fn()
+    .mockImplementation(({ where }: { where: { id: string } }) =>
+      Promise.resolve({ id: where.id, title: '글', publishedAt: new Date() }),
+    );
 
   const service = new BlogSyncService(
     prisma as never,
@@ -64,10 +87,12 @@ function makeService(overrides: Partial<Record<string, unknown>> = {}) {
     mirror as never,
     articles as never,
     realtime as never,
+    reviews as never,
+    alimtalk as never,
     transformer as never,
     config as never,
   );
-  return { service, prisma, rss, fetcher, mirror, articles, realtime, settings };
+  return { service, prisma, rss, fetcher, mirror, articles, realtime, reviews, alimtalk, settings };
 }
 
 const item = (logNo: string, publishedAt: string, category = '공지'): BlogRssItem => ({
@@ -217,6 +242,51 @@ describe('BlogSyncService.run (imports as draft articles)', () => {
   it('refuses to run without a blogId', async () => {
     const { service } = makeService({ settings: { blogId: '' } });
     await expect(service.run('manual')).rejects.toMatchObject({ status: 400 });
+  });
+
+  it('applies the LLM clean title as Article.title and keeps the original in sourceTitle', async () => {
+    const { service, articles } = makeService({
+      items: [item('100', '2026-08-05T00:00:00Z')],
+      transformer: {
+        transform: (p: ParsedPost) => ({ ...p, cleanTitle: '9월 부모교육 안내', summary: '요약.' }),
+      },
+    });
+    await service.run('manual');
+    expect(articles.create).toHaveBeenCalledWith(
+      expect.objectContaining({ title: '9월 부모교육 안내', sourceTitle: '글 100' }),
+    );
+  });
+
+  it('sends the review alimtalk per created article and counts notified', async () => {
+    const { service, reviews, alimtalk } = makeService({
+      items: [item('1', '2026-06-01T00:00:00Z'), item('2', '2026-06-02T00:00:00Z')],
+      alimtalkEnabled: true,
+    });
+    const summary = await service.run('manual');
+    expect(reviews.issue).toHaveBeenCalledTimes(2);
+    expect(alimtalk.sendReviewRequest).toHaveBeenCalledTimes(2);
+    expect(summary).toMatchObject({ created: 2, notified: 2, notifyFailed: 0 });
+  });
+
+  it('a failed alimtalk keeps the article and only bumps notifyFailed', async () => {
+    const { service, alimtalk } = makeService({
+      items: [item('1', '2026-06-01T00:00:00Z')],
+      alimtalkEnabled: true,
+    });
+    alimtalk.sendReviewRequest.mockResolvedValue({ sent: 0, failed: 1, results: [] });
+    const summary = await service.run('manual');
+    expect(summary).toMatchObject({ created: 1, notified: 0, notifyFailed: 1, status: 'ok' });
+  });
+
+  it('still issues the review row (silently) when alimtalk is disabled', async () => {
+    const { service, reviews, alimtalk } = makeService({
+      items: [item('1', '2026-06-01T00:00:00Z')],
+      alimtalkEnabled: false,
+    });
+    const summary = await service.run('manual');
+    expect(reviews.issue).toHaveBeenCalledTimes(1);
+    expect(alimtalk.sendReviewRequest).not.toHaveBeenCalled();
+    expect(summary).toMatchObject({ created: 1, notified: 0, notifyFailed: 0 });
   });
 
   it('uses the first run startedAt as cutoff when BLOG_SYNC_SINCE is empty', async () => {
