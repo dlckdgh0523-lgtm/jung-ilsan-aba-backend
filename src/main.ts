@@ -36,7 +36,9 @@ async function bootstrap(): Promise<void> {
   const upload = config.get('upload', { infer: true });
 
   app.set('trust proxy', 1); // behind Nginx — honour X-Forwarded-* for client IP / protocol
-  app.setGlobalPrefix(apiPrefix);
+  // robots.txt must live at the origin root: the API host itself must never be
+  // indexed (its SEO pages are proxied under the front domain, which owns canonical).
+  app.setGlobalPrefix(apiPrefix, { exclude: ['robots.txt'] });
 
   app.use(
     helmet({

@@ -25,6 +25,18 @@ export class SeoService {
     return (process.env.FRONT_BASE_URL || 'https://www.chungaba.com').replace(/\/$/, '');
   }
 
+  /**
+   * og:image / JSON-LD image must be absolute. Local-driver uploads store
+   * relative "/uploads/…" URLs — resolve them against the API's public origin
+   * (that's where the files are actually served from).
+   */
+  private absoluteImage(url?: string | null): string | undefined {
+    if (!url) return undefined;
+    if (/^https?:\/\//i.test(url)) return url;
+    const apiBase = (process.env.API_PUBLIC_BASE || '').replace(/\/$/, '');
+    return apiBase ? `${apiBase}${url.startsWith('/') ? '' : '/'}${url}` : url;
+  }
+
   // ── sitemap.xml ────────────────────────────────────────────────────────────
   async sitemapXml(): Promise<string> {
     const base = this.frontBase;
@@ -149,7 +161,7 @@ export class SeoService {
         datePublished: article.publishedAt || article.createdAt,
         dateModified: article.updatedAt,
         mainEntityOfPage: canonical,
-        ...(article.thumbnail ? { image: article.thumbnail } : {}),
+        ...(article.thumbnail ? { image: this.absoluteImage(article.thumbnail) } : {}),
         ...(locations.length > 0
           ? { contentLocation: locations.map((name) => ({ '@type': 'Place', name })) }
           : {}),
@@ -215,12 +227,12 @@ export class SeoService {
       description: article.seoDescription || article.excerpt || '',
       canonical,
       frontBase: base,
-      ogImage: article.thumbnail || undefined,
+      ogImage: this.absoluteImage(article.thumbnail),
       jsonLd,
       bodyHtml: `<p class="meta"><a href="${base}/blog">소식·블로그</a>${article.category ? ` · ${escapeHtml(article.category.name)}` : ''}</p>
 <h1>${escapeHtml(article.title)}</h1>
 <p class="meta">${fmtDate(article.publishedAt || article.createdAt)} · 정지은일산ABA</p>
-${article.thumbnail ? `<p><img src="${escapeHtml(article.thumbnail)}" alt="${escapeHtml(article.title)}"></p>` : ''}
+${article.thumbnail ? `<p><img src="${escapeHtml(this.absoluteImage(article.thumbnail) ?? '')}" alt="${escapeHtml(article.title)}"></p>` : ''}
 <article>${sanitizeRichHtml(article.content || '')}</article>
 ${tagsHtml}
 ${faqHtml}

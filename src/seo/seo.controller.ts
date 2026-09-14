@@ -1,5 +1,7 @@
 import { Controller, Get, Header, NotFoundException, Param, Query, Res } from '@nestjs/common';
 import type { Response } from 'express';
+import { AdminOnly } from '../auth/decorators/admin-only.decorator';
+import { SeoHealthService, type SeoHealthReport } from './seo-health.service';
 import { SeoService } from './seo.service';
 
 function pageNum(v?: string): number {
@@ -16,13 +18,35 @@ function pageNum(v?: string): number {
  */
 @Controller()
 export class SeoController {
-  constructor(private readonly service: SeoService) {}
+  constructor(
+    private readonly service: SeoService,
+    private readonly health: SeoHealthService,
+  ) {}
+
+  /** 관리자용 콘텐츠 품질 점검 (검색엔진 점수가 아니라 내부 체크리스트). */
+  @Get('seo/health')
+  @AdminOnly()
+  healthReport(): Promise<SeoHealthReport> {
+    return this.health.report();
+  }
 
   @Get('sitemap.xml')
   @Header('Content-Type', 'application/xml; charset=utf-8')
   @Header('Cache-Control', 'public, max-age=3600')
   sitemap(): Promise<string> {
     return this.service.sitemapXml();
+  }
+
+  /**
+   * Served at the API ORIGIN root (excluded from the global prefix): the API
+   * host must never be indexed — the same content lives on the front domain
+   * via Vercel rewrites, and that domain owns the canonical URLs.
+   */
+  @Get('robots.txt')
+  @Header('Content-Type', 'text/plain; charset=utf-8')
+  @Header('Cache-Control', 'public, max-age=86400')
+  robots(): string {
+    return 'User-agent: *\nDisallow: /\n';
   }
 
   @Get('seo/blog')
