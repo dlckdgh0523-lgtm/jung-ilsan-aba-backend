@@ -59,6 +59,11 @@ export class SeoController {
     res.type('html').send(await this.service.programsHtml());
   }
 
+  @Get('seo/team')
+  async team(@Res() res: Response): Promise<void> {
+    res.type('html').send(await this.service.teamHtml());
+  }
+
   @Get('seo/faq')
   async faq(@Res() res: Response): Promise<void> {
     res.type('html').send(await this.service.faqHtml());

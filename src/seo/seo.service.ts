@@ -44,6 +44,7 @@ export class SeoService {
       { loc: `${base}/`, priority: '1.0' },
       { loc: `${base}/about`, priority: '0.9' },
       { loc: `${base}/programs`, priority: '0.9' },
+      { loc: `${base}/team`, priority: '0.8' },
       { loc: `${base}/faq`, priority: '0.8' },
       { loc: `${base}/contact`, priority: '0.8' },
       { loc: `${base}/blog`, priority: '0.8' },
@@ -363,7 +364,7 @@ ${values.length ? `<h2>센터가 지키는 가치</h2><ul>${values.map((v) => `<
 ${education.length ? `<h3>학력</h3><ul>${education.map((e) => `<li>${escapeHtml(e)}</li>`).join('')}</ul>` : ''}
 ${certs.length ? `<h3>전문자격</h3><ul>${certs.map((c) => `<li>${escapeHtml(c)}</li>`).join('')}</ul>` : ''}
 ${career.length ? `<h3>주요 경력</h3><ul>${career.map((c) => `<li>${escapeHtml(c)}</li>`).join('')}</ul>` : ''}
-<p>센터장의 학술 연구는 <a href="${base}/#papers">센터장 논문</a>에서, 프로그램 안내는 <a href="${base}/programs">치료 프로그램</a>에서 볼 수 있습니다.</p>
+<p>센터장의 학술 연구는 <a href="${base}/#papers">센터장 논문</a>에서, 치료진 구성은 <a href="${base}/team">치료사 소개</a>에서, 프로그램 안내는 <a href="${base}/programs">치료 프로그램</a>에서 볼 수 있습니다.</p>
 </article>
 <div class="cta-box"><strong>정지은일산ABA</strong> — 고양시 일산 지역 ABA 전문기관<br><a href="${base}/contact">상담 안내 보기</a></div>`,
     });
@@ -505,6 +506,60 @@ ${faqs.map((f) => `<h2>Q. ${escapeHtml(f.question)}</h2><p>${escapeHtml(f.answer
 </ul>
 </article>
 <div class="cta-box"><strong>정지은일산ABA</strong> — ${escapeHtml(address)}<br>전화 ${escapeHtml(phone)} · ${escapeHtml(hours)}</div>`,
+    });
+  }
+  async teamHtml(): Promise<string> {
+    const base = this.frontBase;
+    const [therapists, director] = await Promise.all([
+      this.prisma.therapist.findMany({
+        where: { deletedAt: null, visible: true },
+        orderBy: { order: 'asc' },
+      }),
+      this.prisma.director.findUnique({ where: { id: 'singleton' } }),
+    ]);
+    const dCerts = this.strList(director?.certifications);
+
+    const cards = therapists
+      .map((t) => {
+        const certs = this.strList(t.certifications);
+        const education = this.strList(t.education);
+        const teaching = this.strList(t.teaching);
+        return `<article>
+<h2>${escapeHtml(t.name)}${t.role ? ` <small>· ${escapeHtml(t.role)}</small>` : ''}</h2>
+${t.summary ? `<p>${escapeHtml(t.summary)}</p>` : ''}
+${certs.length ? `<h3>자격</h3><ul>${certs.map((c) => `<li>${escapeHtml(c)}</li>`).join('')}</ul>` : ''}
+${education.length ? `<h3>학력·교육</h3><ul>${education.map((e) => `<li>${escapeHtml(e)}</li>`).join('')}</ul>` : ''}
+${teaching.length ? `<h3>주요 지도 분야</h3><ul>${teaching.map((x) => `<li>${escapeHtml(x)}</li>`).join('')}</ul>` : ''}
+${t.completion ? `<p>${escapeHtml(t.completion)}</p>` : ''}
+</article>`;
+      })
+      .join('\n');
+
+    return seoPageShell({
+      title: '치료사 소개 | 정지은일산ABA',
+      description:
+        '정지은일산ABA의 치료진 소개 — 박사 센터장(BCBA-D)의 정기 슈퍼비전 아래, 행동분석 자격과 임상 경험을 갖춘 치료사들이 아동별 개별 ABA 중재를 담당합니다.',
+      canonical: `${base}/team`,
+      frontBase: base,
+      jsonLd: [
+        {
+          '@context': 'https://schema.org',
+          '@type': 'WebPage',
+          name: '치료사 소개 | 정지은일산ABA',
+          url: `${base}/team`,
+          about: { '@id': ORG_ID },
+        },
+      ],
+      bodyHtml: `<h1>치료사 소개</h1>
+<p class="meta"><a href="${base}/">홈</a> · 박사 센터장 슈퍼비전 체계로 운영되는 치료진</p>
+<article>
+<h2>센터장 — ${escapeHtml(director?.name || '정지은')}${dCerts.length ? ` <small>(${escapeHtml(dCerts.slice(0, 3).join(', '))})</small>` : ''}</h2>
+<p>센터장이 아동의 평가, 중재계획, 프로그램 운영과 치료사 슈퍼비전을 총괄합니다. 학력·경력·연구는 <a href="${base}/about">센터 소개</a>에서 자세히 볼 수 있습니다.</p>
+</article>
+${cards || '<p>치료진 정보를 준비 중입니다.</p>'}
+<h2>치료진 운영 방식</h2>
+<p>모든 치료사는 정기 슈퍼비전과 사례회의를 통해 아동별 개별화 목표와 중재 절차를 점검하며, 회기 자료에 근거해 프로그램을 조정합니다. 프로그램 안내는 <a href="${base}/programs">치료 프로그램</a>, 문의는 <a href="${base}/contact">상담 안내</a>를 확인하세요.</p>
+<div class="cta-box"><strong>정지은일산ABA</strong> — 고양시 일산 지역 ABA 전문기관<br><a href="${base}/contact">상담 안내 보기</a></div>`,
     });
   }
 }
