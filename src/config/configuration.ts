@@ -23,6 +23,17 @@ export interface AppConfig {
   consultation: { rateTtl: number; rateLimit: number };
   stats: { concurrentWindowSeconds: number };
   static: { enabled: boolean; root: string };
+  blogSync: {
+    enabled: boolean;
+    blogId: string;
+    cron: string;
+    /** Category allowlist (trimmed). Empty = every category is imported. */
+    categories: string[];
+    maxPerRun: number;
+    /** ISO cutoff — posts published before this are never imported. Empty = first-run time. */
+    since: string;
+    fetchTimeoutMs: number;
+  };
 }
 
 const toInt = (v: string | undefined, fallback: number): number => {
@@ -81,5 +92,14 @@ export default (): AppConfig => ({
   static: {
     enabled: (process.env.SERVE_STATIC ?? 'true') === 'true',
     root: process.env.STATIC_ROOT ?? '../aba-design-system',
+  },
+  blogSync: {
+    enabled: process.env.BLOG_SYNC_ENABLED === 'true',
+    blogId: process.env.NAVER_BLOG_ID ?? '',
+    cron: process.env.BLOG_SYNC_CRON ?? '*/30 * * * *',
+    categories: toList(process.env.BLOG_SYNC_CATEGORIES),
+    maxPerRun: toInt(process.env.BLOG_SYNC_MAX_PER_RUN, 5),
+    since: process.env.BLOG_SYNC_SINCE ?? '',
+    fetchTimeoutMs: toInt(process.env.BLOG_SYNC_FETCH_TIMEOUT_MS, 15000),
   },
 });

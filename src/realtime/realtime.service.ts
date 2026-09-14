@@ -4,7 +4,7 @@ import { Observable, Subject } from 'rxjs';
 export interface RealtimeEvent {
   /** Monotonic sequence; surfaced to clients as `evt_<seq>` for Last-Event-ID. */
   seq: number;
-  type: 'consultation';
+  type: 'consultation' | 'notice.synced';
   data: unknown;
 }
 
@@ -28,7 +28,16 @@ export class RealtimeService {
   }
 
   emitConsultation(view: unknown): void {
-    const event: RealtimeEvent = { seq: ++this.seq, type: 'consultation', data: view };
+    this.emit('consultation', view);
+  }
+
+  /** Blog sync created new (hidden) notices — admin dashboards show a review prompt. */
+  emitNoticeSynced(view: unknown): void {
+    this.emit('notice.synced', view);
+  }
+
+  private emit(type: RealtimeEvent['type'], data: unknown): void {
+    const event: RealtimeEvent = { seq: ++this.seq, type, data };
     this.buffer.push(event);
     if (this.buffer.length > this.BUFFER_MAX) this.buffer.shift();
     this.subject.next(event);

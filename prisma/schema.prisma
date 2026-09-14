@@ -172,12 +172,35 @@ model Notice {
   views     Int       @default(0)
   order     Int       @default(0)
   visible   Boolean   @default(true)
+  // Naver blog sync provenance — set only on notices imported from the blog.
+  // sourceUrl doubles as the dedupe key: a notice (even soft-deleted) with the
+  // same sourceUrl is never re-imported.
+  sourceUrl String?   @unique @map("source_url")
+  sourceId  String?   @map("source_id") // Naver logNo
+  syncedAt  DateTime? @map("synced_at")
   deletedAt DateTime? @map("deleted_at")
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
 
   @@index([deletedAt, visible, pinned, order])
   @@map("notices")
+}
+
+// One row per blog-sync execution (cron or manual) — operational observability.
+// Only the most recent runs are retained; see BlogSyncService.pruneRuns.
+model BlogSyncRun {
+  id         String    @id @default(cuid())
+  startedAt  DateTime  @map("started_at")
+  finishedAt DateTime? @map("finished_at")
+  status     String // running | ok | error
+  fetched    Int       @default(0) // RSS items seen
+  created    Int       @default(0) // notices created this run
+  skipped    Int       @default(0) // cutoff / category / duplicate skips
+  error      String?
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  @@index([startedAt])
+  @@map("blog_sync_runs")
 }
 
 model GalleryItem {

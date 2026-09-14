@@ -37,6 +37,7 @@ const ALLOWED_MIME = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gi
     }),
   ],
   controllers: [UploadsController],
+  exports: [UploadsService],
   providers: [
     UploadsService,
     {

@@ -44,8 +44,10 @@ export class RealtimeController {
     // On auto-reconnect the browser sends Last-Event-ID; replay anything missed, then go live.
     const lastSeq = Number(String(req.headers['last-event-id'] ?? '').replace('evt_', ''));
     const replay$ = from(this.realtime.replayAfter(lastSeq)).pipe(map(toMessageEvent));
+    // notice.synced rides the same admin stream as a named SSE event; clients that
+    // only listen for 'consultation' simply never see it.
     const live$ = this.realtime.events$.pipe(
-      filter((e) => e.type === 'consultation'),
+      filter((e) => e.type === 'consultation' || e.type === 'notice.synced'),
       map(toMessageEvent),
     );
 

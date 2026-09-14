@@ -1,5 +1,14 @@
 import { plainToInstance } from 'class-transformer';
-import { IsIn, IsInt, IsOptional, IsString, MinLength, validateSync } from 'class-validator';
+import {
+  IsIn,
+  IsInt,
+  IsISO8601,
+  IsOptional,
+  IsString,
+  MinLength,
+  ValidateIf,
+  validateSync,
+} from 'class-validator';
 
 class EnvVars {
   @IsOptional()
@@ -21,6 +30,34 @@ class EnvVars {
   @IsOptional()
   @IsInt()
   JWT_TTL_SECONDS?: number;
+
+  // Optional vars use ValidateIf(non-empty) instead of @IsOptional: dotenv turns a
+  // bare `VAR=` line into '' (not undefined), which @IsOptional would still validate.
+  @ValidateIf((o: EnvVars) => o.BLOG_SYNC_ENABLED !== undefined && o.BLOG_SYNC_ENABLED !== '')
+  @IsIn(['true', 'false'])
+  BLOG_SYNC_ENABLED?: string;
+
+  // Required only when the sync is actually turned on.
+  @ValidateIf((o: EnvVars) => o.BLOG_SYNC_ENABLED === 'true')
+  @IsString({ message: 'NAVER_BLOG_ID is required when BLOG_SYNC_ENABLED=true' })
+  @MinLength(1, { message: 'NAVER_BLOG_ID is required when BLOG_SYNC_ENABLED=true' })
+  NAVER_BLOG_ID?: string;
+
+  @IsOptional()
+  @IsString()
+  BLOG_SYNC_CRON?: string;
+
+  @IsOptional()
+  @IsInt()
+  BLOG_SYNC_MAX_PER_RUN?: number;
+
+  @ValidateIf((o: EnvVars) => o.BLOG_SYNC_SINCE !== undefined && o.BLOG_SYNC_SINCE !== '')
+  @IsISO8601({}, { message: 'BLOG_SYNC_SINCE must be an ISO date (e.g. 2026-09-01)' })
+  BLOG_SYNC_SINCE?: string;
+
+  @IsOptional()
+  @IsInt()
+  BLOG_SYNC_FETCH_TIMEOUT_MS?: number;
 }
 
 export function validateEnv(config: Record<string, unknown>): Record<string, unknown> {

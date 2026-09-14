@@ -169,3 +169,53 @@ sudo certbot certonly --standalone -d api.도메인.com   # 80 필요(nginx 잠�
    프론트(Vercel) `vercel.json`이 `/sitemap.xml`, `/blog`, `/blog/:slug`, `/tags/:slug`를 여기로 rewrite한다.
    백엔드 도메인이 바뀌면 `vercel.json`의 rewrite 대상도 함께 수정할 것.
    선택: `FRONT_BASE_URL` 환경변수로 canonical 도메인 지정 (기본 `https://www.chungaba.com`).
+
+---
+
+## 11. 블로그 동기화 (네이버 블로그 → 공지) — 2026-09 추가
+
+센터 네이버 블로그(`blog.naver.com/ilsanaba`)에 새 글이 올라오면 RSS로 감지해
+공지(Notice)로 가져온다. **항상 비공개(visible=false)로 생성**되며, 관리자가
+관리자페이지에서 확인 후 직접 공개한다. 자동 공개는 없다. 관리자가 지운 글은
+다시 가져오지 않는다(`source_url` 기준 중복 방지, 소프트삭제 포함).
+
+### 환경변수
+
+| 변수 | 기본값 | 설명 |
+| --- | --- | --- |
+| `BLOG_SYNC_ENABLED` | `false` | `true`일 때만 크론 등록. 꺼져 있어도 수동 실행/미리보기 API는 동작 |
+| `NAVER_BLOG_ID` | (없음) | `ENABLED=true`면 필수. 예: `ilsanaba` |
+| `BLOG_SYNC_CRON` | `*/30 * * * *` | 크론 표현식 (Asia/Seoul 기준) |
+| `BLOG_SYNC_CATEGORIES` | (전체) | 쉼표 구분 카테고리 allowlist. 예: `공지,센터소식` |
+| `BLOG_SYNC_MAX_PER_RUN` | `5` | 1회 실행당 최대 생성 수 (초과분은 다음 실행에서 처리) |
+| `BLOG_SYNC_SINCE` | (없음) | ISO 날짜. 이 날짜 이전 글은 무시 — **과거 글 전체 수입 방지**. 비우면 첫 실행 시각이 기준으로 고정됨 |
+| `BLOG_SYNC_FETCH_TIMEOUT_MS` | `15000` | RSS/본문/이미지 fetch 타임아웃 |
+
+### 관리자 API (모두 admin JWT 필요)
+
+- `POST /v1/blog-sync/run` — 즉시 1회 실행, 요약 반환. 실행 중이면 409.
+- `GET /v1/blog-sync/status` — 설정 요약 + 마지막/최근 10회 실행 기록(`blog_sync_runs`).
+- `POST /v1/blog-sync/preview` `{ "url": "<블로그 글 URL>" }` — 저장 없이 파싱 결과만 반환(파서 점검용).
+
+### 첫 도입 순서 (반드시 이 순서로)
+
+1. **`BLOG_SYNC_SINCE` 설정** (예: 도입일). 이걸 빼먹으면 첫 실행 기준이
+   "첫 실행 시각"으로 고정되므로 과거 글은 어차피 안 들어오지만, 명시하는 편이 예측 가능하다.
+2. `BLOG_SYNC_ENABLED=false`, `NAVER_BLOG_ID=ilsanaba` 상태로 배포 (크론 없음).
+3. **서버 IP에서 네이버 접근 확인**: `POST /v1/blog-sync/preview`에 최근 글 URL을 넣어
+   title/body/이미지 목록이 정상 반환되는지 확인한다. 이것이 곧 **호스팅(Render 등)
+   데이터센터 IP에서 `rss.blog.naver.com`/`m.blog.naver.com`이 차단되지 않았는지의 검증**이다.
+   ⚠️ 여기서 403/타임아웃이 반복되면 이 인프로세스 방식은 무효 — GitHub Actions 등
+   외부 러너에서 fetch 후 API로 POST하는 우회 설계로 전환해야 한다.
+4. `POST /v1/blog-sync/run` 수동 1회 실행 → 관리자페이지 공지 목록(비공개 필터)에서
+   생성 결과·본문·이미지를 검수한다.
+5. 문제 없으면 `BLOG_SYNC_ENABLED=true`로 재배포 → 30분 간격 크론 가동.
+
+### 운영 메모
+
+- DB 마이그레이션 `20260913200000_blog_sync`는 시작 시 `prisma migrate deploy`가 자동 적용
+  (notices에 nullable 컬럼 3개 추가 + `blog_sync_runs` 테이블 — 추가 전용).
+- 실행 기록은 최근 100개 + 최초 1개(SINCE 미설정 시 기준 시각 앵커)만 보관.
+- 이미지도 자체 스토리지(S3/R2 또는 로컬)로 미러링해 저장하므로 네이버 CDN 핫링크에 의존하지 않는다.
+- 블로그 글 **수정은 반영하지 않는다** (새 글 1회 가져오기만). 수정 반영이 필요하면 공지를 지우지 말고
+  관리자페이지에서 직접 고칠 것.

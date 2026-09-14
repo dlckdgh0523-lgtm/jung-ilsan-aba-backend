@@ -1,0 +1,43 @@
+/**
+ * Shared types for the Naver blog → notice sync pipeline.
+ * All network access goes through the injected FETCH token so tests can mock it
+ * and no unit test ever talks to Naver.
+ */
+
+/** DI token for the fetch implementation (global fetch in production, a stub in tests). */
+export const BLOG_FETCH = Symbol('BLOG_FETCH');
+
+export type FetchLike = typeof fetch;
+
+/** One RSS entry, already reduced to what the sync needs. */
+export interface BlogRssItem {
+  logNo: string;
+  /** Canonical post URL (`https://blog.naver.com/{blogId}/{logNo}`) — the dedupe key. */
+  url: string;
+  title: string;
+  category: string;
+  publishedAt: Date;
+}
+
+/** Parsed post body, before image mirroring and sanitisation. */
+export interface ParsedPost {
+  /** og:title — used by the preview endpoint (sync uses the RSS title). */
+  title: string;
+  /** Block-level HTML: <p>/<blockquote>/<img>/<a> sequence with original Naver image URLs. */
+  bodyHtml: string;
+  /** Original (un-mirrored) image URLs, in document order. */
+  imageUrls: string[];
+  /** Module types that were dropped (video/sticker/map/file/…) — surfaced in preview. */
+  dropped: string[];
+}
+
+/** DI token for the post transformer hook. */
+export const POST_TRANSFORMER = Symbol('POST_TRANSFORMER');
+
+/**
+ * Extension seam between parsing and persistence (e.g. future rewriting).
+ * v1 ships only the passthrough implementation — no LLM, no content changes.
+ */
+export interface PostTransformer {
+  transform(post: ParsedPost, item: BlogRssItem): Promise<ParsedPost> | ParsedPost;
+}

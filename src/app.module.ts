@@ -27,6 +27,7 @@ import { ArticleCategoriesModule } from './article-categories/article-categories
 import { TagsModule } from './tags/tags.module';
 import { FaqsModule } from './faqs/faqs.module';
 import { SeoModule } from './seo/seo.module';
+import { BlogSyncModule } from './blog-sync/blog-sync.module';
 
 @Module({
   imports: [
@@ -60,6 +61,7 @@ import { SeoModule } from './seo/seo.module';
     TagsModule,
     FaqsModule,
     SeoModule,
+    BlogSyncModule,
   ],
   controllers: [HealthController],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
