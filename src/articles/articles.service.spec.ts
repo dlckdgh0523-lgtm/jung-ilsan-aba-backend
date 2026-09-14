@@ -133,11 +133,11 @@ describe('ArticlesService.create', () => {
     );
   });
 
-  it('rejects more than 8 tags', async () => {
+  it('rejects more tags than ARTICLE_MAX_TAGS (30)', async () => {
     const { prisma, service } = makeService();
     prisma.article.findFirst.mockResolvedValue(null);
-    const tagIds = Array.from({ length: 9 }, (_, i) => 't' + i);
-    await expect(service.create({ title: '태그 초과', tagIds })).rejects.toThrow('최대 8개');
+    const tagIds = Array.from({ length: 31 }, (_, i) => 't' + i);
+    await expect(service.create({ title: '태그 초과', tagIds })).rejects.toThrow('최대 30개');
   });
 
   it('rejects unknown tag ids', async () => {

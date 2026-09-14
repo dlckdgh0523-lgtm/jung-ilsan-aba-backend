@@ -11,8 +11,8 @@ import {
 } from 'class-validator';
 import { OrderedContentDto } from '../../common/dto/ordered-content.dto';
 
-/** Spec §7-1: a post carries at most 8 tags. */
-export const ARTICLE_MAX_TAGS = 8;
+/** Per-post tag cap (was 8; raised to 30 by owner request, 2026-09-15). */
+export const ARTICLE_MAX_TAGS = 30;
 
 export class CreateArticleDto extends OrderedContentDto {
   @IsString()
