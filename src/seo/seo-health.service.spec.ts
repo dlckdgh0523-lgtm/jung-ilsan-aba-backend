@@ -25,6 +25,7 @@ const post = (over: Record<string, unknown> = {}) => ({
   content: `<p>${'본문 '.repeat(80)}</p><p><a href="/blog/other">관련 글</a></p>`,
   categoryId: 'c1',
   relatedLocations: ['고양시'],
+  relatedPrograms: ['p1'],
   tags: [{ tagId: 't1' }],
   ...over,
 });

@@ -49,6 +49,26 @@ export class SeoController {
     return 'User-agent: *\nDisallow: /\n';
   }
 
+  @Get('seo/about')
+  async about(@Res() res: Response): Promise<void> {
+    res.type('html').send(await this.service.aboutHtml());
+  }
+
+  @Get('seo/programs')
+  async programs(@Res() res: Response): Promise<void> {
+    res.type('html').send(await this.service.programsHtml());
+  }
+
+  @Get('seo/faq')
+  async faq(@Res() res: Response): Promise<void> {
+    res.type('html').send(await this.service.faqHtml());
+  }
+
+  @Get('seo/contact')
+  async contact(@Res() res: Response): Promise<void> {
+    res.type('html').send(await this.service.contactHtml());
+  }
+
   @Get('seo/blog')
   async blog(@Query('page') page: string | undefined, @Res() res: Response): Promise<void> {
     const html = await this.service.blogIndexHtml(pageNum(page));

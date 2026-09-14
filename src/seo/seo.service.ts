@@ -42,6 +42,10 @@ export class SeoService {
     const base = this.frontBase;
     const urls: { loc: string; lastmod?: string; priority?: string }[] = [
       { loc: `${base}/`, priority: '1.0' },
+      { loc: `${base}/about`, priority: '0.9' },
+      { loc: `${base}/programs`, priority: '0.9' },
+      { loc: `${base}/faq`, priority: '0.8' },
+      { loc: `${base}/contact`, priority: '0.8' },
       { loc: `${base}/blog`, priority: '0.8' },
     ];
     const [articles, tags] = await Promise.all([
@@ -303,6 +307,203 @@ ${relatedHtml}
 ${tag.description ? `<p>${escapeHtml(tag.description)}</p>` : ''}
 <ul class="cards">${items || '<li>이 태그의 게시글이 아직 없습니다.</li>'}</ul>${pager}
 <div class="cta-box"><strong>정지은일산ABA</strong> — 고양시 일산 지역 ABA 행동발달센터<br><a href="${base}/#contact">상담 신청하기</a></div>`,
+    });
+  }
+  // ── 독립 정적 페이지 (해시 라우트의 SSR 대응: /about /programs /faq /contact) ──
+  // 콘텐츠는 전부 DB(관리자페이지에서 편집하는 실데이터)에서 렌더 — 홈 복제 아님.
+
+  private async brand(): Promise<Record<string, unknown>> {
+    const site = await this.prisma.siteSetting.findUnique({ where: { id: 'singleton' } });
+    return ((site?.brand as Record<string, unknown>) ?? {}) as Record<string, unknown>;
+  }
+
+  private strList(v: unknown): string[] {
+    return Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string' && !!x) : [];
+  }
+
+  async aboutHtml(): Promise<string> {
+    const base = this.frontBase;
+    const [about, director] = await Promise.all([
+      this.prisma.about.findUnique({ where: { id: 'singleton' } }),
+      this.prisma.director.findUnique({ where: { id: 'singleton' } }),
+    ]);
+    const body = this.strList(about?.body);
+    const values = (Array.isArray(about?.values) ? about?.values : []) as {
+      ko?: string;
+      en?: string;
+      desc?: string;
+    }[];
+    const certs = this.strList(director?.certifications);
+    const education = this.strList(director?.education);
+    const career = this.strList(director?.career);
+
+    return seoPageShell({
+      title: '센터 소개 | 정지은일산ABA',
+      description:
+        '정지은일산ABA는 고양시 일산서구 주엽동의 응용행동분석(ABA) 전문기관입니다. 센터의 치료 철학, 운영 방식, 박사 센터장(BCBA-D)의 학력·자격·경력을 소개합니다.',
+      canonical: `${base}/about`,
+      frontBase: base,
+      jsonLd: [
+        {
+          '@context': 'https://schema.org',
+          '@type': 'AboutPage',
+          name: '센터 소개 | 정지은일산ABA',
+          url: `${base}/about`,
+          mainEntity: { '@id': ORG_ID },
+        },
+      ],
+      bodyHtml: `<h1>센터 소개</h1>
+<p class="meta"><a href="${base}/">홈</a> · 정지은일산ABA — 고양시 일산서구 주엽동 ABA 전문기관</p>
+<article>
+${about?.title ? `<h2>${escapeHtml(about.title)}</h2>` : ''}
+${body.map((t) => `<p>${escapeHtml(t)}</p>`).join('\n')}
+${values.length ? `<h2>센터가 지키는 가치</h2><ul>${values.map((v) => `<li><strong>${escapeHtml(v.ko || '')}${v.en ? ` (${escapeHtml(v.en)})` : ''}</strong> — ${escapeHtml(v.desc || '')}</li>`).join('')}</ul>` : ''}
+<h2>센터장 — ${escapeHtml(director?.name || '정지은')} ${escapeHtml(director?.sub || '')}</h2>
+${education.length ? `<h3>학력</h3><ul>${education.map((e) => `<li>${escapeHtml(e)}</li>`).join('')}</ul>` : ''}
+${certs.length ? `<h3>전문자격</h3><ul>${certs.map((c) => `<li>${escapeHtml(c)}</li>`).join('')}</ul>` : ''}
+${career.length ? `<h3>주요 경력</h3><ul>${career.map((c) => `<li>${escapeHtml(c)}</li>`).join('')}</ul>` : ''}
+<p>센터장의 학술 연구는 <a href="${base}/#papers">센터장 논문</a>에서, 프로그램 안내는 <a href="${base}/programs">치료 프로그램</a>에서 볼 수 있습니다.</p>
+</article>
+<div class="cta-box"><strong>정지은일산ABA</strong> — 고양시 일산 지역 ABA 전문기관<br><a href="${base}/contact">상담 안내 보기</a></div>`,
+    });
+  }
+
+  async programsHtml(): Promise<string> {
+    const base = this.frontBase;
+    const programs = await this.prisma.program.findMany({
+      where: { deletedAt: null, visible: true },
+      orderBy: { order: 'asc' },
+    });
+    const sections = programs
+      .map((pr) => {
+        const detail = (pr.detail ?? {}) as {
+          intro?: string;
+          sections?: { heading?: string; body?: string }[];
+        };
+        const subs = Array.isArray(detail.sections) ? detail.sections : [];
+        return `<h2>${escapeHtml(pr.title)}${pr.ageRange ? ` <small>(${escapeHtml(pr.ageRange)})</small>` : ''}</h2>
+${pr.desc ? `<p>${escapeHtml(pr.desc)}</p>` : ''}
+${detail.intro ? `<p>${escapeHtml(detail.intro)}</p>` : ''}
+${subs.map((sc) => `<h3>${escapeHtml(sc.heading || '')}</h3><p>${escapeHtml(sc.body || '')}</p>`).join('\n')}`;
+      })
+      .join('\n');
+
+    return seoPageShell({
+      title: '치료 프로그램 | 정지은일산ABA',
+      description:
+        '정지은일산ABA의 프로그램 안내 — 초기상담, 발달평가, ABA 조기교실, 1:1 개별 ABA, 사회성 프로그램, 부모상담·부모교육. 고양시 일산 지역 자폐스펙트럼·발달지연 아동을 위한 응용행동분석 프로그램입니다.',
+      canonical: `${base}/programs`,
+      frontBase: base,
+      jsonLd: [
+        {
+          '@context': 'https://schema.org',
+          '@type': 'ItemList',
+          name: '정지은일산ABA 치료 프로그램',
+          itemListElement: programs.map((pr, i) => ({
+            '@type': 'ListItem',
+            position: i + 1,
+            item: {
+              '@type': 'Service',
+              name: pr.title,
+              description: pr.desc || undefined,
+              provider: { '@id': ORG_ID },
+              areaServed: ['고양시', '일산서구', '파주시', '김포시'],
+            },
+          })),
+        },
+      ],
+      bodyHtml: `<h1>치료 프로그램</h1>
+<p class="meta"><a href="${base}/">홈</a> · 아이의 발달수준과 행동 기능에 맞춘 개별화 ABA 프로그램</p>
+<article>
+${sections || '<p>프로그램 정보를 준비 중입니다.</p>'}
+<h2>프로그램 선택이 어려우신가요?</h2>
+<p>초기상담에서 아이의 현재 발달과 주 호소를 살펴보고 알맞은 프로그램을 안내드립니다. <a href="${base}/contact">상담 안내</a>를 확인하시거나, ABA가 처음이라면 <a href="${base}/faq">자주 묻는 질문</a>과 <a href="${base}/blog">소식·블로그</a>의 전문 정보를 먼저 읽어보세요.</p>
+</article>
+<div class="cta-box"><strong>정지은일산ABA</strong> — 고양시 일산 지역 ABA 전문기관<br><a href="${base}/contact">상담 안내 보기</a></div>`,
+    });
+  }
+
+  async faqHtml(): Promise<string> {
+    const base = this.frontBase;
+    const faqs = await this.prisma.faqItem.findMany({
+      where: { deletedAt: null, visible: true },
+      orderBy: { order: 'asc' },
+    });
+    return seoPageShell({
+      title: '자주 묻는 질문 | 정지은일산ABA',
+      description:
+        'ABA 치료가 처음인 부모님들이 자주 묻는 질문 — ABA란 무엇인지, 어떤 아이가 대상인지, 상담·평가·치료가 어떤 순서로 진행되는지, 부모 참여는 어떻게 이루어지는지 답해드립니다.',
+      canonical: `${base}/faq`,
+      frontBase: base,
+      jsonLd: faqs.length
+        ? [
+            {
+              '@context': 'https://schema.org',
+              '@type': 'FAQPage',
+              url: `${base}/faq`,
+              // 화면에 실제 표시되는 질문·답변만 그대로 반영
+              mainEntity: faqs.map((f) => ({
+                '@type': 'Question',
+                name: f.question,
+                acceptedAnswer: { '@type': 'Answer', text: f.answer },
+              })),
+            },
+          ]
+        : [],
+      bodyHtml: `<h1>자주 묻는 질문</h1>
+<p class="meta"><a href="${base}/">홈</a> · ABA가 처음인 부모님을 위한 안내</p>
+<article>
+${faqs.map((f) => `<h2>Q. ${escapeHtml(f.question)}</h2><p>${escapeHtml(f.answer)}</p>`).join('\n') || '<p>등록된 질문이 없습니다.</p>'}
+<p>더 궁금한 점은 <a href="${base}/contact">상담 안내</a>에서 문의 방법을 확인하세요. 프로그램별 자세한 내용은 <a href="${base}/programs">치료 프로그램</a>에 있습니다.</p>
+</article>
+<div class="cta-box"><strong>정지은일산ABA</strong> — 고양시 일산 지역 ABA 전문기관<br><a href="${base}/contact">상담 안내 보기</a></div>`,
+    });
+  }
+
+  async contactHtml(): Promise<string> {
+    const base = this.frontBase;
+    const brand = await this.brand();
+    const address = String(brand.address || '경기도 고양시 일산서구 주엽로 150 자유프라자 606호');
+    const phone = String(brand.phone || '031-977-2575');
+    const fax = String(brand.fax || '031-976-2575');
+    const hours = String(brand.hours || '평일 09:00 — 21:00');
+    const kakaoId = String(brand.kakaoId || '@jungjieun_aba');
+
+    return seoPageShell({
+      title: '상담 안내 · 오시는 길 | 정지은일산ABA',
+      description: `정지은일산ABA 상담 신청 방법과 오시는 길 — ${address}, 전화 ${phone}, ${hours}. 지하철 3호선 주엽역 인근으로 일산·고양은 물론 파주·운정에서도 방문하기 좋습니다.`,
+      canonical: `${base}/contact`,
+      frontBase: base,
+      jsonLd: [
+        {
+          '@context': 'https://schema.org',
+          '@type': 'ContactPage',
+          name: '상담 안내 · 오시는 길 | 정지은일산ABA',
+          url: `${base}/contact`,
+          mainEntity: { '@id': ORG_ID },
+        },
+      ],
+      bodyHtml: `<h1>상담 안내 · 오시는 길</h1>
+<p class="meta"><a href="${base}/">홈</a> · 처음 오시는 부모님을 위한 안내</p>
+<article>
+<h2>상담 신청 방법</h2>
+<ul>
+<li>전화: ${escapeHtml(phone)} (${escapeHtml(hours)})</li>
+<li>카카오톡 채널: ${escapeHtml(kakaoId)}</li>
+<li>홈페이지 <a href="${base}/#contact">상담 신청 폼</a></li>
+</ul>
+<h2>상담은 이렇게 진행됩니다</h2>
+<p>초기상담에서 아이의 발달 상태와 주 호소를 함께 살펴보고, 필요 시 발달평가를 거쳐 아이에게 맞는 프로그램과 목표를 안내드립니다. 프로그램별 안내는 <a href="${base}/programs">치료 프로그램</a>, 자주 묻는 내용은 <a href="${base}/faq">FAQ</a>에서 미리 확인하실 수 있습니다.</p>
+<h2>오시는 길</h2>
+<p><strong>${escapeHtml(address)}</strong></p>
+<ul>
+<li>지하철: 3호선 주엽역 인근 (자유프라자 건물 6층)</li>
+<li>일산서구 주엽동 중심 상권에 위치해 일산동구·파주·운정·김포에서도 이동이 편리합니다.</li>
+<li>전화: ${escapeHtml(phone)} · 팩스: ${escapeHtml(fax)}</li>
+<li>운영시간: ${escapeHtml(hours)}</li>
+</ul>
+</article>
+<div class="cta-box"><strong>정지은일산ABA</strong> — ${escapeHtml(address)}<br>전화 ${escapeHtml(phone)} · ${escapeHtml(hours)}</div>`,
     });
   }
 }

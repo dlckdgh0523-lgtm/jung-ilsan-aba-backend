@@ -55,6 +55,7 @@ export class SeoHealthService {
           content: true,
           categoryId: true,
           relatedLocations: true,
+          relatedPrograms: true,
           tags: { select: { tagId: true } },
         },
         take: 2000,
@@ -66,6 +67,7 @@ export class SeoHealthService {
     ]);
 
     const titleSeen = new Map<string, string>();
+    const introSeen = new Map<string, string>(); // 첫 200자 → 글 (도입부 복붙 감지)
     for (const a of published) {
       const where = `/blog/${a.slug}`;
       const title = (a.seoTitle || a.title || '').trim();
@@ -80,6 +82,15 @@ export class SeoHealthService {
       const dup = titleSeen.get(title);
       if (dup) errors.push({ where, message: `중복 제목 ("${title}") — ${dup}와 동일` });
       else titleSeen.set(title, where);
+
+      // 콘텐츠 품질: 도입부(첫 200자)가 다른 글과 동일하면 복붙/자동생성 의심
+      const intro = text.slice(0, 200);
+      if (intro.length >= 100) {
+        const dupIntro = introSeen.get(intro);
+        if (dupIntro)
+          warnings.push({ where, message: `도입부가 ${dupIntro}와 동일 — 내용 중복 의심` });
+        else introSeen.set(intro, where);
+      }
 
       if (!a.thumbnail) warnings.push({ where, message: '대표 이미지 없음' });
       else if (!/^https?:\/\//i.test(a.thumbnail) && !a.thumbnail.startsWith('/')) {
@@ -99,6 +110,17 @@ export class SeoHealthService {
       }
       if (!/href=/.test(a.content || '')) {
         warnings.push({ where, message: '내부/외부 링크가 하나도 없음' });
+      }
+      // 전환 연결: 관련 프로그램도, 상담/프로그램 페이지 링크도 없는 글
+      const relPrograms = Array.isArray(a.relatedPrograms) ? a.relatedPrograms : [];
+      if (
+        relPrograms.length === 0 &&
+        !/\/(contact|programs)|#contact|#programs/.test(a.content || '')
+      ) {
+        warnings.push({
+          where,
+          message: '상담·프로그램으로 이어지는 연결 없음 (관련 프로그램 또는 링크 권장)',
+        });
       }
       const locations = Array.isArray(a.relatedLocations) ? a.relatedLocations : [];
       if (
