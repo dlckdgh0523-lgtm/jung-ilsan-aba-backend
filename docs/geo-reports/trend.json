@@ -15,5 +15,13 @@
     "ok": 20,
     "repeat": 2,
     "rule": "any"
+  },
+  {
+    "date": "2026-09-21",
+    "mention": 1,
+    "cited": 0,
+    "ok": 20,
+    "repeat": 2,
+    "rule": "any"
   }
 ]
