@@ -87,5 +87,13 @@
     "ok": 20,
     "repeat": 2,
     "rule": "any"
+  },
+  {
+    "date": "2026-11-23",
+    "mention": 6,
+    "cited": 0,
+    "ok": 16,
+    "repeat": 2,
+    "rule": "any"
   }
 ]
